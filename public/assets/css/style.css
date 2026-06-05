@@ -1,0 +1,230 @@
+/* =========================================================
+   منصة مصر للبحث والتطوير الصناعي
+   Egypt Industrial R&D Platform — Government RTL theme
+   Palette: dark blue / teal / white / light gray
+   ========================================================= */
+
+:root {
+    --eg-navy:      #0b2545;  /* أزرق داكن */
+    --eg-navy-700:  #13315c;
+    --eg-teal:      #0e9594;  /* تركواز */
+    --eg-teal-600:  #0c807f;
+    --eg-light:     #f4f6f9;  /* رمادي فاتح */
+    --eg-gray:      #e3e8ef;
+    --eg-text:      #1f2937;
+    --eg-muted:     #6b7280;
+    --eg-white:     #ffffff;
+    --sidebar-w:    260px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: "Segoe UI", "Tahoma", "Cairo", system-ui, -apple-system, sans-serif;
+    background: var(--eg-light);
+    color: var(--eg-text);
+    margin: 0;
+    font-size: 15px;
+}
+
+a { text-decoration: none; }
+
+/* ---------- Login screen ---------- */
+.auth-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--eg-navy) 0%, var(--eg-teal-600) 100%);
+    padding: 20px;
+}
+.auth-card {
+    background: var(--eg-white);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    width: 100%;
+    max-width: 430px;
+    overflow: hidden;
+}
+.auth-head {
+    background: var(--eg-navy);
+    color: #fff;
+    padding: 28px 24px 22px;
+    text-align: center;
+}
+.auth-head .logo-badge {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--eg-teal);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 30px; margin-bottom: 12px;
+}
+.auth-head h1 { font-size: 19px; margin: 0 0 4px; font-weight: 700; }
+.auth-head p  { font-size: 13px; margin: 0; opacity: .8; }
+.auth-body { padding: 26px 28px 30px; }
+.demo-box {
+    background: var(--eg-light);
+    border: 1px dashed var(--eg-gray);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--eg-muted);
+    margin-top: 18px;
+}
+.demo-box code { color: var(--eg-teal-600); direction: ltr; display: inline-block; }
+
+/* ---------- App shell ---------- */
+.app-shell { display: flex; min-height: 100vh; }
+
+.sidebar {
+    width: var(--sidebar-w);
+    background: var(--eg-navy);
+    color: #cdd7e4;
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column;
+    z-index: 1030;
+    transition: transform .25s ease;
+}
+.sidebar-brand {
+    padding: 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; gap: 12px;
+}
+.sidebar-brand .badge-logo {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--eg-teal);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #fff; flex-shrink: 0;
+}
+.sidebar-brand .brand-text strong { color: #fff; font-size: 14px; display: block; line-height: 1.3; }
+.sidebar-brand .brand-text span { font-size: 11px; opacity: .65; }
+
+.sidebar-nav { padding: 12px 10px; overflow-y: auto; flex: 1; }
+.sidebar-nav .nav-section {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+    color: rgba(255,255,255,.4); padding: 14px 12px 6px; margin: 0;
+}
+.sidebar-nav a {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; border-radius: 9px;
+    color: #cdd7e4; font-size: 14px; margin-bottom: 2px;
+    transition: all .15s;
+}
+.sidebar-nav a .ico { width: 20px; text-align: center; font-size: 15px; }
+.sidebar-nav a:hover { background: rgba(255,255,255,.07); color: #fff; }
+.sidebar-nav a.active { background: var(--eg-teal); color: #fff; font-weight: 600; }
+.sidebar-foot { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,.08); font-size: 11px; opacity: .55; }
+
+.main-area {
+    flex: 1;
+    margin-right: var(--sidebar-w);
+    display: flex; flex-direction: column;
+    min-width: 0;
+}
+
+.topbar {
+    background: var(--eg-white);
+    border-bottom: 1px solid var(--eg-gray);
+    padding: 12px 22px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 1020;
+}
+.topbar .page-title { font-size: 17px; font-weight: 700; color: var(--eg-navy); margin: 0; }
+.topbar .topbar-actions { display: flex; align-items: center; gap: 14px; }
+.btn-burger { display: none; background: none; border: none; font-size: 22px; color: var(--eg-navy); }
+
+.user-chip {
+    display: flex; align-items: center; gap: 9px;
+    background: var(--eg-light); padding: 6px 12px; border-radius: 30px;
+}
+.user-chip .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--eg-teal); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+}
+.user-chip small { color: var(--eg-muted); display: block; line-height: 1.1; }
+
+.bell { position: relative; color: var(--eg-navy); font-size: 19px; }
+.bell .count {
+    position: absolute; top: -6px; left: -8px;
+    background: #ef4444; color: #fff; font-size: 10px;
+    border-radius: 10px; padding: 1px 5px; min-width: 17px; text-align: center;
+}
+
+.content { padding: 24px 22px 40px; }
+
+/* ---------- KPI cards ---------- */
+.kpi-card {
+    background: var(--eg-white);
+    border: 1px solid var(--eg-gray);
+    border-radius: 14px;
+    padding: 18px;
+    height: 100%;
+    display: flex; align-items: center; gap: 14px;
+    transition: transform .15s, box-shadow .15s;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(11,37,69,.08); }
+.kpi-card .kpi-ico {
+    width: 50px; height: 50px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: #fff; flex-shrink: 0;
+}
+.kpi-card .kpi-val { font-size: 26px; font-weight: 800; color: var(--eg-navy); line-height: 1; }
+.kpi-card .kpi-lbl { font-size: 13px; color: var(--eg-muted); margin-top: 4px; }
+
+.bg-navy { background: var(--eg-navy) !important; }
+.bg-teal { background: var(--eg-teal) !important; }
+.text-navy { color: var(--eg-navy) !important; }
+
+/* ---------- Generic cards / sections ---------- */
+.card { border: 1px solid var(--eg-gray); border-radius: 14px; }
+.card-header {
+    background: var(--eg-white);
+    border-bottom: 1px solid var(--eg-gray);
+    font-weight: 700; color: var(--eg-navy);
+    border-radius: 14px 14px 0 0 !important;
+    padding: 14px 18px;
+}
+.section-title { font-size: 16px; font-weight: 700; color: var(--eg-navy); margin: 0; }
+
+.btn-primary { background: var(--eg-navy); border-color: var(--eg-navy); }
+.btn-primary:hover { background: var(--eg-navy-700); border-color: var(--eg-navy-700); }
+.btn-teal { background: var(--eg-teal); border-color: var(--eg-teal); color: #fff; }
+.btn-teal:hover { background: var(--eg-teal-600); border-color: var(--eg-teal-600); color: #fff; }
+.btn-outline-navy { color: var(--eg-navy); border-color: var(--eg-navy); }
+.btn-outline-navy:hover { background: var(--eg-navy); color: #fff; }
+
+.table thead th { background: var(--eg-light); color: var(--eg-navy); font-size: 13px; border-bottom: 2px solid var(--eg-gray); }
+.table td { vertical-align: middle; font-size: 14px; }
+
+.form-label { font-weight: 600; font-size: 14px; color: var(--eg-navy); }
+.form-control:focus, .form-select:focus { border-color: var(--eg-teal); box-shadow: 0 0 0 .2rem rgba(14,149,148,.15); }
+
+.match-score {
+    display: inline-block; min-width: 42px; text-align: center;
+    background: var(--eg-teal); color: #fff; border-radius: 20px;
+    padding: 3px 10px; font-weight: 700; font-size: 13px;
+}
+.kw-chip {
+    display: inline-block; background: var(--eg-light); border: 1px solid var(--eg-gray);
+    border-radius: 14px; padding: 2px 9px; font-size: 12px; margin: 2px; color: var(--eg-navy);
+}
+
+.empty-state { text-align: center; padding: 50px 20px; color: var(--eg-muted); }
+.empty-state .ico { font-size: 46px; opacity: .4; }
+
+.notif-item { border-right: 4px solid transparent; }
+.notif-item.unread { border-right-color: var(--eg-teal); background: #f0fbfb; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 992px) {
+    .sidebar { transform: translateX(100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main-area { margin-right: 0; }
+    .btn-burger { display: inline-block; }
+    .sidebar-backdrop {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1029;
+    }
+    .sidebar-backdrop.show { display: block; }
+}
