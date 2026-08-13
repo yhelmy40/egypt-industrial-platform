@@ -240,17 +240,31 @@ final class OrganizationRepository extends BaseRepository
         $extra    = '';
         $bindings = [$status];
 
+        /**
+         * ثبات الحالة | Status consistency.
+         *
+         * `verified_at` يبقى غير فارغ فقط عندما تكون الحالة `verified`. لو تُرك
+         * بعد الإيقاف أو الرفض، لبدت المنشأة موثّقة لأي استعلام يعتمد عليه —
+         * وهو بالضبط نوع التناقض الذي يُظهر منشأة موقوفة كأنها معتمدة.
+         * `verified_at` is non-null only while the status is `verified`. Leaving
+         * it behind after a suspension or rejection would make the organization
+         * look verified to any query relying on it.
+         */
         if ($status === 'verified') {
-            $extra    = ', verified_at = NOW(), verified_by = ?, rejection_reason = NULL';
+            $extra      = ', verified_at = NOW(), verified_by = ?, rejection_reason = NULL,
+                            suspended_at = NULL, suspension_reason = NULL';
             $bindings[] = $actorId;
         } elseif ($status === 'rejected' || $status === 'more_info_required') {
-            $extra      = ', rejection_reason = ?';
+            $extra      = ', rejection_reason = ?, verified_at = NULL, verified_by = NULL';
             $bindings[] = $reason === null ? null : mb_substr($reason, 0, 1000);
         } elseif ($status === 'suspended') {
-            $extra      = ', suspended_at = NOW(), suspension_reason = ?';
+            $extra      = ', suspended_at = NOW(), suspension_reason = ?,
+                            verified_at = NULL, verified_by = NULL';
             $bindings[] = $reason === null ? null : mb_substr($reason, 0, 1000);
         } elseif ($status === 'submitted') {
-            $extra = ', submitted_at = NOW()';
+            $extra = ', submitted_at = NOW(), verified_at = NULL, verified_by = NULL, rejection_reason = NULL';
+        } elseif ($status === 'draft' || $status === 'under_review') {
+            $extra = ', verified_at = NULL, verified_by = NULL';
         }
 
         $bindings[] = $id;

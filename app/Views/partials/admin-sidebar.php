@@ -14,8 +14,8 @@ $sections = [
         ['تقارير المنصة', '/admin/reports', '📊', 'reports.platform.view', false],
     ],
     'المراجعة والاعتماد' => [
-        ['طلبات التوثيق', '/admin/verifications', '✅', 'org.account.verify', false],
-        ['المنشآت', '/admin/organizations', '🏢', 'org.account.view_any', false],
+        ['طلبات التوثيق', '/admin/verifications', '✅', 'org.account.view_any', true],
+        ['المنشآت', '/admin/verifications?status=', '🏢', 'org.account.view_any', true],
         ['مراجعة الإعلانات', '/admin/moderation', '🛒', 'marketplace.listing.moderate', false],
         ['الشكاوى والنزاعات', '/admin/complaints', '⚠', 'marketplace.complaint.manage', false],
     ],

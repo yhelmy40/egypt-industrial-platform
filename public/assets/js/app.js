@@ -17,6 +17,7 @@
         initConfirmations();
         initAutoDismiss();
         initFormGuards();
+        initDependentSelects();
     });
 
     /** القائمة الجانبية على الشاشات الصغيرة | Mobile sidebar toggle. */
@@ -97,6 +98,52 @@
                         button.textContent = button.dataset.busyLabel;
                     }
                 }, 0);
+            });
+        });
+    }
+
+    /**
+     * القوائم المرتبطة | Dependent selects (governorate → city, sector → sub-sector).
+     *
+     * تحسين تدريجي: بدون جافاسكربت تبقى القائمة الثانية معبّأة من الخادم بقيم
+     * الاختيار المحفوظ، ويظل النموذج قابلاً للإرسال.
+     * Progressive enhancement: without JS the dependent select still renders
+     * server-side values and the form remains submittable.
+     */
+    function initDependentSelects() {
+        document.querySelectorAll('[data-dependent-target]').forEach(function (source) {
+            source.addEventListener('change', function () {
+                var target = document.getElementById(source.dataset.dependentTarget);
+                if (!target) {
+                    return;
+                }
+
+                var placeholder = target.options.length ? target.options[0].textContent : '';
+                target.disabled = true;
+
+                var url = source.dataset.dependentUrl
+                    + '?' + encodeURIComponent(source.dataset.dependentParam)
+                    + '=' + encodeURIComponent(source.value);
+
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (response) { return response.ok ? response.json() : { data: [] }; })
+                    .then(function (payload) {
+                        target.innerHTML = '';
+
+                        var blank = document.createElement('option');
+                        blank.value = '';
+                        blank.textContent = placeholder;
+                        target.appendChild(blank);
+
+                        (payload.data || []).forEach(function (item) {
+                            var option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = item.name_ar;
+                            target.appendChild(option);
+                        });
+                    })
+                    .catch(function () { /* تُترك القائمة كما هي عند فشل الطلب */ })
+                    .finally(function () { target.disabled = false; });
             });
         });
     }

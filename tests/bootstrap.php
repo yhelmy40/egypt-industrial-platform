@@ -72,6 +72,7 @@ $runner = new SeederRunner($basePath . '/database/seeders');
 $runner->run('GovernoratesSeeder');
 $runner->run('SectorsSeeder');
 $runner->run('OrganizationTypesSeeder');
+$runner->run('DocumentTypesSeeder');
 $runner->run('RolesAndPermissionsSeeder');
 $runner->run('SystemSettingsSeeder');
 

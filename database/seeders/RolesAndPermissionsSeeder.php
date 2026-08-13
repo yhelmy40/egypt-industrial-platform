@@ -29,9 +29,40 @@ final class RolesAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         $permissionIds = $this->seedPermissions();
+        $removed       = $this->pruneObsoletePermissions(array_keys($permissionIds));
         $this->seedRoles($permissionIds);
 
-        $this->info(count($permissionIds) . ' صلاحية موزّعة على الأدوار.');
+        $this->info(
+            count($permissionIds) . ' صلاحية موزّعة على الأدوار'
+            . ($removed > 0 ? " (وحُذفت {$removed} صلاحية ملغاة)." : '.')
+        );
+    }
+
+    /**
+     * حذف الصلاحيات الملغاة | Remove permissions no longer in the catalogue.
+     *
+     * الكتالوج أعلاه هو مصدر الحقيقة. بدون هذه الخطوة تبقى الصلاحيات التي
+     * أُعيدت تسميتها في قاعدة البيانات بلا أدوار، فتظهر في شاشة إدارة الصلاحيات
+     * كخيارات وهمية يمكن إسنادها دون أن يفحصها أي مسار — وهو تضليل أمني.
+     * The catalogue above is the source of truth. Without this step, renamed
+     * permissions linger with no roles, showing up in the admin matrix as
+     * assignable options that no route ever checks — security theatre.
+     *
+     * @param array<int,string> $currentCodes
+     */
+    private function pruneObsoletePermissions(array $currentCodes): int
+    {
+        if ($currentCodes === []) {
+            return 0;
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($currentCodes), '?'));
+
+        // الحذف يُسقط الروابط في role_permissions و member_permissions عبر CASCADE
+        return Database::affectingStatement(
+            "DELETE FROM permissions WHERE code NOT IN ({$placeholders})",
+            $currentCodes,
+        );
     }
 
     /**

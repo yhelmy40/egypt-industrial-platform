@@ -1,7 +1,7 @@
 <?php
 /**
  * مستخدم بلا منشأة | User with no organization yet.
- * يظهر عند تسجيل حساب جديد قبل تسجيل أي منشأة، أو بعد إلغاء آخر عضوية.
+ * يظهر بعد إنشاء حساب جديد وقبل تسجيل أي منشأة.
  */
 ?>
 <div class="row justify-content-center">
@@ -11,16 +11,17 @@
                 <div class="intent-card__icon mx-auto mb-3" style="width:64px;height:64px;font-size:1.8rem">🏢</div>
                 <h2 class="h4 mb-2">لم تُسجّل منشأة بعد</h2>
                 <p class="text-muted-np mb-4">
-                    لبدء استخدام مساحة العمل، سجّل مشروعك أو منشأتك. ستحتاج إلى بيانات النشاط
-                    والموقع، والمستندات الرسمية إن وُجدت.
+                    لبدء استخدام مساحة العمل، سجّل مشروعك أو منشأتك. تحتاج إلى بيانات النشاط
+                    والموقع ووسيلة تواصل — وتستكمل المستندات لاحقاً قبل الإرسال للمراجعة.
                 </p>
 
-                <div class="alert alert-info text-start fs-sm" role="alert">
-                    <strong>ملاحظة:</strong> وحدة تسجيل المنشآت قيد التنفيذ ضمن المرحلة الثانية
-                    من خطة التطوير، وستُفعَّل هنا فور اكتمالها.
-                </div>
+                <a class="btn btn-primary btn-lg" href="<?= e(url('/app/organization/new')) ?>">
+                    تسجيل منشأة جديدة
+                </a>
 
-                <a class="btn btn-outline-primary" href="<?= e(url('/')) ?>"><?= __e('common.home') ?></a>
+                <p class="fs-sm text-muted-np mt-4 mb-0">
+                    يمكنك أيضاً <a href="<?= e(url('/')) ?>">تصفّح المنصة</a> قبل التسجيل.
+                </p>
             </div>
         </div>
     </div>

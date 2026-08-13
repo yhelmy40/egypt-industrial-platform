@@ -77,8 +77,55 @@ $router->group(
         $r->get('/account/password', [Auth\PasswordController::class, 'showChangeForm'])
             ->name('account.password');
         $r->post('/account/password', [Auth\PasswordController::class, 'changePassword']);
+
+        // ─── تسجيل منشأة جديدة | Registering a new organization ───
+        // بلا صلاحية: أي مستخدم مصادق عليه يحق له تسجيل منشأة خاصة به.
+        $r->get('/organization/new', [Sme\OrganizationController::class, 'showTypeSelection'])
+            ->name('organization.new');
+        $r->get('/organization/new/form', [Sme\OrganizationController::class, 'showCreateForm'])
+            ->name('organization.create');
+        $r->post('/organization', [Sme\OrganizationController::class, 'store']);
+
+        // ─── ملف المنشأة | Organization profile ───
+        $r->get('/organization', [Sme\OrganizationController::class, 'show'])
+            ->permission('org.profile.view')
+            ->name('organization.show');
+        $r->post('/organization/basics', [Sme\OrganizationController::class, 'updateBasics'])
+            ->permission('org.profile.update');
+        $r->post('/organization/profile', [Sme\OrganizationController::class, 'updateProfile'])
+            ->permission('org.profile.update');
+        $r->post('/organization/logo', [Sme\OrganizationController::class, 'uploadLogo'])
+            ->permission('org.profile.update');
+        $r->post('/organization/submit', [Sme\OrganizationController::class, 'submit'])
+            ->permission('org.profile.update');
+
+        // قوائم مرتبطة عبر JSON | Dependent selects
+        $r->get('/reference/cities', [Sme\OrganizationController::class, 'citiesJson']);
+        $r->get('/reference/sub-sectors', [Sme\OrganizationController::class, 'subSectorsJson']);
+
+        // ─── مستندات المنشأة | Documents ───
+        $r->get('/organization/documents', [Sme\DocumentController::class, 'index'])
+            ->permission('org.document.view')
+            ->name('organization.documents');
+        $r->post('/organization/documents', [Sme\DocumentController::class, 'upload'])
+            ->permission('org.document.upload');
+        $r->post('/organization/documents/{id:\d+}/delete', [Sme\DocumentController::class, 'delete'])
+            ->permission('org.document.upload');
+
+        // ─── الإشعارات | Notifications ───
+        $r->get('/notifications', [Sme\NotificationController::class, 'index'])
+            ->name('notifications');
+        $r->post('/notifications/{id:\d+}/read', [Sme\NotificationController::class, 'markRead']);
+        $r->post('/notifications/read-all', [Sme\NotificationController::class, 'markAllRead']);
     },
 );
+
+// ═══════════════════ الملفات المرفوعة | Uploaded files ═══════════════════
+// المنفذ الوحيد للملفات؛ التفويض داخل المتحكّم لأن الملفات العامة (الشعارات)
+// يجب أن تعمل للزوار بينما الوثائق الخاصة تتطلّب عضوية أو صلاحية مراجعة.
+$router->group('/files', [ResolveTenant::class], static function (Router $r): void {
+    $r->get('/{id:\d+}', [App\Controllers\FileController::class, 'show'])->name('files.show');
+});
 
 // ═══════════════════ إدارة المنصة | Platform administration ═══════════════════
 $router->group(
@@ -88,6 +135,20 @@ $router->group(
         $r->get('', [Admin\DashboardController::class, 'index'])
             ->permission('reports.platform.view')
             ->name('admin.dashboard');
+
+        // ─── طابور مراجعة التوثيق | Verification queue ───
+        $r->get('/verifications', [Admin\VerificationController::class, 'index'])
+            ->permission('org.account.view_any')
+            ->name('admin.verifications');
+        $r->get('/verifications/{id:\d+}', [Admin\VerificationController::class, 'show'])
+            ->permission('org.account.view_any')
+            ->name('admin.verifications.show');
+
+        // القرارات تتطلّب صلاحية التوثيق تحديداً، لا مجرد الاطلاع
+        $r->post('/verifications/{id:\d+}/decide', [Admin\VerificationController::class, 'decide'])
+            ->permission('org.account.verify');
+        $r->post('/verifications/{id:\d+}/documents/{documentId:\d+}', [Admin\VerificationController::class, 'reviewDocument'])
+            ->permission('org.account.verify');
     },
 );
 
