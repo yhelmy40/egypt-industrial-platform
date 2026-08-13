@@ -1,0 +1,56 @@
+# ============================================================
+#  إعدادات Apache لجذر الويب | Apache configuration for the web root
+#  يتطلّب mod_rewrite مفعّلاً و AllowOverride All
+# ============================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # منع الوصول إلى المجلدات المخفية (.git وغيرها)
+    RewriteRule ^\.(?!well-known) - [F,L]
+
+    # توجيه كل ما ليس ملفاً أو مجلداً موجوداً إلى المتحكّم الأمامي
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# منع عرض محتويات المجلدات | No directory listing
+Options -Indexes
+
+<IfModule mod_headers.c>
+    # ترويسات أمان احتياطية — التطبيق يضبطها أيضاً على مستوى الاستجابة
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # إزالة ترويسة إصدار PHP
+    Header always unset X-Powered-By
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    # الأصول الثابتة تحمل بصمة إصدار في الرابط، فالتخزين الطويل آمن
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+</IfModule>
+
+# منع تنفيذ أي ملف PHP خارج المتحكّم الأمامي داخل مجلد الأصول
+<Directory "assets">
+    <FilesMatch "\.(php|phtml|phar)$">
+        Require all denied
+    </FilesMatch>
+</Directory>
+
+# حظر الملفات الحسّاسة إن وُجدت بالخطأ
+<FilesMatch "^(\.env|\.env\..*|composer\.(json|lock)|phpunit\.xml.*)$">
+    Require all denied
+</FilesMatch>

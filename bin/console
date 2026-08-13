@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * نقطة دخول سطر الأوامر | CLI entry point.
+ * الاستخدام | Usage: php bin/console <command>
+ */
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('This script may only be run from the command line.');
+}
+
+$basePath = dirname(__DIR__);
+
+require $basePath . '/vendor/autoload.php';
+require $basePath . '/bin/console.php';
+
+exit((new App\Console\Console($basePath))->run($argv));

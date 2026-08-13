@@ -1,137 +1,168 @@
-# منصة مصر للبحث والتطوير الصناعي
-# Egypt Industrial Research & Development Platform
+# منصة رواد النيل لتمكين المشروعات الصغيرة والمتوسطة
+# NilePreneurs SME Marketplace & Business Enablement Platform
 
-منصة حكومية عربية (RTL) لربط المصانع بالباحثين والخبراء، وإدارة التحديات الصناعية، ومشاريع البحث والتطوير، وفرص التمويل، ومركز المعرفة — لصالح وزارة الصناعة المصرية.
+منصة عربية (RTL) تجمع الحضور الرقمي للمشروعات الصغيرة والمتوسطة، وسوق المنتجات والخدمات،
+والوصول إلى الخدمات المالية وغير المالية، ودعم مراكز تطوير الأعمال، وأدوات إدارة يومية
+مبسّطة — تحت إدارة **مبادرة رواد النيل**.
 
-A government-grade, Arabic-first (RTL) platform connecting factories with researchers/experts, managing industrial challenges, R&D projects, funding opportunities, and a knowledge hub — for Egypt's Ministry of Industry.
+An Arabic-first (RTL) platform combining SME digital presence, a products/services
+marketplace, financial and non-financial service access, business-development support,
+and lightweight CRM/ERP tools — administered by the NilePreneurs initiative.
 
-- **Stack:** PHP 8 · MySQL 8 (MariaDB compatible) · vanilla JS · Bootstrap 5 RTL · Chart.js
-- **Architecture:** lightweight custom MVC (no Laravel/React) · front controller · PDO prepared statements
-- **Version:** 1.0.0-MVP
-
----
-
-## 1. Requirements
-
-- **XAMPP** (or any Apache + PHP 8.1+ + MySQL/MariaDB stack)
-- PHP extensions: `pdo_mysql`, `mbstring` — both ship enabled by default in XAMPP
-- Apache `mod_rewrite` enabled (for clean URLs)
-
----
-
-## 2. Installation (XAMPP)
-
-1. **Copy the project** into your web root:
-   ```
-   C:\xampp\htdocs\egypt-irdp        (Windows)
-   /Applications/XAMPP/htdocs/egypt-irdp   (macOS)
-   /opt/lampp/htdocs/egypt-irdp      (Linux)
-   ```
-
-2. **Start** Apache and MySQL from the XAMPP control panel.
-
-3. **Create the database and import the schema, then the seed data.**
-   Open phpMyAdmin (`http://localhost/phpmyadmin`) and either:
-   - Run **`database/schema.sql`** first (it creates the `egypt_irdp` database and all tables), then **`database/seed.sql`** (demo data); or
-   - From the command line:
-     ```bash
-     mysql -u root < database/schema.sql
-     mysql -u root < database/seed.sql
-     ```
-   > Import order matters: **schema first, then seed.**
-
-4. **Confirm database settings** in `config/config.php` (defaults match a stock XAMPP install):
-   ```php
-   define('DB_HOST', '127.0.0.1');
-   define('DB_PORT', '3306');
-   define('DB_NAME', 'egypt_irdp');
-   define('DB_USER', 'root');
-   define('DB_PASS', '');        // XAMPP default root password is empty
-   ```
-
-5. **Open the app:**
-   ```
-   http://localhost/egypt-irdp/public/
-   ```
-   All requests route through `public/index.php`. The included `.htaccess` files enable clean URLs and protect the app/config/uploads directories — make sure `mod_rewrite` is on (`AllowOverride All` for the vhost).
-
-6. **Uploads:** the `uploads/` folder must be writable by Apache. A bundled `uploads/.htaccess` blocks direct execution of any uploaded files for safety.
+| | |
+|---|---|
+| **الإصدار** | `1.0.0-mvp` — المرحلة الأولى (الأساس) مكتملة |
+| **المتطلبات** | PHP 8.3+ · MySQL 8 · Apache + mod_rewrite |
+| **المعمارية** | MVC مخصّص · PDO بعبارات مُجهَّزة · بلا إطار عمل خارجي |
+| **الاعتماديات** | Composer للتحميل التلقائي فقط + PHPUnit (تطوير) |
 
 ---
 
-## 3. Demo accounts
+## 1. حالة التنفيذ | Implementation status
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin (Ministry) | `admin@industry.gov.eg` | `Admin123!` |
-| Factory | `factory@demo.com` | `Factory123!` |
-| Researcher | `researcher@demo.com` | `Research123!` |
-| Expert | `expert@demo.com` | `Expert123!` |
-| Investor / Funding | `investor@demo.com` | `Investor123!` |
-
-Passwords are stored as bcrypt hashes (`password_hash`). Change them in production.
-
----
-
-## 4. Modules
-
-1. **Authentication** — login/logout, role-based dashboards, hashed passwords, CSRF protection.
-2. **Factory Profile** — sector, governorate, contact, products, challenges, energy usage, production capacity.
-3. **Industrial Challenges Bank** — factories submit challenges; admin approves / rejects / assigns. Status workflow: `pending → open → matched → in_progress → solved` (or `rejected`).
-4. **Smart Matching (rule-based, no AI)** — scores challenges against researcher/expert profiles by shared sector + overlapping expertise keywords. Admin reviews ranked matches and assigns.
-5. **Researcher / Expert Profiles** — organization, specialization, expertise keywords, previous projects, contact.
-6. **R&D Projects** — admin converts an approved challenge into a tracked project.
-7. **Funding Opportunities** — program, entity, eligible sectors, max amount, deadline, contact.
-8. **Knowledge Hub** — articles/resources by category and sector, with optional file upload or external link.
-9. **Ministry Dashboard** — KPIs + Chart.js (sector distribution doughnut, priority bar chart).
-10. **Notifications** — triggered on challenge approval, matching, project creation, and new funding.
+| المرحلة | المحتوى | الحالة |
+|---|---|---|
+| 0 | التخطيط والمعمارية وتصميم قاعدة البيانات | ✅ مكتملة |
+| **1** | **الأساس: MVC، المصادقة، الصلاحيات، تعدّد المنشآت، التدقيق، الاختبارات** | ✅ **مكتملة** |
+| 2 | تسجيل المنشآت والتوثيق ورفع المستندات | ⏳ التالية |
+| 3 | الصفحات التعريفية والسوق والطلبات | ⏳ |
+| 4 | الخدمات المالية وغير المالية والمطابقة | ⏳ |
+| 5 | إدارة حالات مراكز تطوير الأعمال | ⏳ |
+| 6 | إدارة العملاء والموارد المبسّطة | ⏳ |
+| 7 | المحتوى والتقارير والتدعيم الأمني والنشر | ⏳ |
 
 ---
 
-## 5. How the matching engine works
+## 2. التثبيت المحلي | Local installation
 
-The matcher is deterministic and transparent (no machine learning):
+```bash
+# 1) الاعتماديات | Dependencies
+composer install
 
-1. Tokenize the challenge text (`needed_expertise` + title + description) and each profile (`expertise_keywords` + specialization + previous projects).
-2. Remove Arabic and English stop words and normalize.
-3. Intersect the keyword sets.
-4. **Score = (matched keywords × 10) + (15 sector-match bonus)**, sorted descending.
+# 2) البيئة | Environment
+cp .env.example .env
+php bin/console key:generate        # يولّد APP_KEY
+# عدّل بيانات قاعدة البيانات في .env
 
-Admin sees the ranked list on the challenge's *Matches* page and persists chosen matches, which flips the challenge to `matched` and notifies the relevant parties.
+# 3) قاعدة البيانات | Database
+php bin/console db:create
+php bin/console migrate
 
----
+# 4) البيانات المرجعية والتجريبية | Reference + demo data
+php bin/console seed
 
-## 6. Project structure
+# 5) فحص الجاهزية | Health check
+php bin/console health
 
+# 6) التشغيل | Run (development)
+php -S 127.0.0.1:8000 -t public
 ```
-egypt-irdp/
-├── config/config.php          # constants: DB, app name, paths, debug
-├── public/                    # web root (point the browser here)
-│   ├── index.php              # single front controller
-│   ├── .htaccess              # routes all requests to index.php
-│   └── assets/                # css/style.css, js/app.js
-├── app/
-│   ├── core/                  # Database (PDO singleton), Model, Controller, Router
-│   ├── helpers/               # Auth, Csrf, Validator, functions.php
-│   ├── controllers/           # one controller per module
-│   ├── models/                # one model per table (+ ChallengeMatch engine)
-│   └── views/                 # layouts, partials, and per-module templates (Arabic RTL)
-├── uploads/                   # user file uploads (writable; execution blocked)
-├── database/
-│   ├── schema.sql             # tables, keys, enums (import FIRST)
-│   └── seed.sql               # demo data (import SECOND)
-└── README.md
+
+ثم افتح `http://127.0.0.1:8000`.
+
+> جذر الويب هو مجلد `public/` فقط. أي إعداد يجعل جذر الموقع هو مجلد المشروع
+> يكشف الكود والإعدادات والملفات المرفوعة — راجع `docs/deployment.md`.
+
+---
+
+## 3. أوامر سطر الأوامر | CLI commands
+
+```bash
+php bin/console db:create           # إنشاء قاعدة البيانات
+php bin/console migrate             # تنفيذ الترحيلات المعلّقة
+php bin/console migrate:status      # عرض حالة الترحيلات
+php bin/console migrate:rollback    # التراجع عن آخر دفعة
+php bin/console migrate:fresh --force   # إعادة بناء كاملة (ممنوعة في الإنتاج)
+php bin/console seed                # كل البذور
+php bin/console seed --class=SectorsSeeder
+php bin/console key:generate        # توليد مفتاح التطبيق
+php bin/console health              # فحص الجاهزية
 ```
 
 ---
 
-## 7. Production notes
+## 4. حسابات العرض التوضيحي | Demo accounts
 
-- Set `APP_DEBUG` to `false` in `config/config.php` to hide error details from users.
-- Change all demo passwords and the database credentials.
-- Serve only the `public/` directory as the web root; keep `app/`, `config/`, and `database/` outside the document root (or rely on the bundled `.htaccess` denials).
-- Optionally set `BASE_URL` in `config/config.php` if the app is not at the server root.
+> ⚠ **بيانات تجريبية للتطوير فقط.** لا تعمل هذه البذرة في `APP_ENV=production`،
+> وكل حساب مُعلَّم بـ `must_change_password`، وكلمات المرور مُدرجة في قائمة المنع
+> فلا يمكن إعادة تعيينها كما هي.
+
+| الدور | البريد الإلكتروني | كلمة المرور |
+|---|---|---|
+| مدير المنصة | `admin@nilepreneurs.test` | `DemoAdmin!2026` |
+| مسؤول تشغيل | `ops@nilepreneurs.test` | `DemoOps!2026` |
+| محرّر محتوى | `editor@nilepreneurs.test` | `DemoEditor!2026` |
+| صاحب مشروع | `sme@nilepreneurs.test` | `DemoSme!2026` |
+| موظف بمشروع | `employee@nilepreneurs.test` | `DemoEmp!2026` |
+| مسؤول بنك | `bank@nilepreneurs.test` | `DemoBank!2026` |
+| مقدّم خدمة | `provider@nilepreneurs.test` | `DemoProv!2026` |
+| منظمة أهلية | `ngo@nilepreneurs.test` | `DemoNgo!2026` |
+| أخصائي تطوير أعمال | `bds@nilepreneurs.test` | `DemoBds!2026` |
+| عميل السوق | `customer@nilepreneurs.test` | `DemoCust!2026` |
+
+كل المنشآت التجريبية موسومة `بيانات تجريبية` ولا تمثّل أي جهة حقيقية.
 
 ---
 
-*Built as a working MVP. UI language is Arabic (RTL); the data model and code comments are bilingual.*
+## 5. الاختبارات | Tests
+
+```bash
+./vendor/bin/phpunit                      # كل الاختبارات
+./vendor/bin/phpunit --testsuite Security # العزل بين المنشآت
+./vendor/bin/phpunit --testsuite Feature
+./vendor/bin/phpunit --testsuite Unit
+```
+
+تعمل الاختبارات على قاعدة منفصلة (`DB_TEST_DATABASE`) تُعاد بناؤها في كل تشغيل،
+وكل اختبار داخل معاملة يُتراجع عنها.
+
+---
+
+## 6. بنية المشروع | Project structure
+
+```
+app/
+  Core/          النواة: التوجيه، الطلب، الاستجابة، العرض، قاعدة البيانات، الترجمة
+  Controllers/   متحكّمات رقيقة (بلا SQL ولا قواعد أعمال)
+  Repositories/  الوصول للبيانات — العزل بين المنشآت يُفرض هنا
+  Services/      قواعد الأعمال والمعاملات وسجل التدقيق
+  Middleware/    الجلسة، CSRF، المصادقة، تحديد المنشأة، الصلاحيات، حدّ المعدّل
+  Validation/    التحقق من المدخلات على الخادم
+  Contracts/     واجهات المزوّدين (بريد، رسائل، دفع مستقبلاً)
+  Adapters/      منفّذات قابلة للتبديل عبر الإعدادات
+  Views/         قوالب PHP عربية RTL
+config/          app · database · security · session · uploads
+database/
+  migrations/    ترحيلات مرقّمة (up/down)
+  seeders/       بيانات مرجعية + بيانات تجريبية منفصلة
+public/          جذر الويب: index.php + الأصول المستضافة محلياً
+resources/lang/  ar (مكتملة) · en (جاهزة للتوسعة)
+storage/         السجلات · المرفوعات (خارج جذر الويب) · التصدير
+tests/           Unit · Feature · Security
+docs/            التثبيت · النشر · الأدوار · الأمان · قاموس البيانات
+```
+
+---
+
+## 7. الوثائق | Documentation
+
+| المستند | المحتوى |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | المعمارية وقرارات التصميم |
+| [`docs/database-dictionary.md`](docs/database-dictionary.md) | قاموس البيانات وشرح العلاقات |
+| [`docs/security.md`](docs/security.md) | نموذج الأمان وقائمة المراجعة |
+| [`docs/roles-and-permissions.md`](docs/roles-and-permissions.md) | الأدوار ومصفوفة الصلاحيات |
+| [`docs/deployment.md`](docs/deployment.md) | النشر على Ubuntu 24.04 والنسخ الاحتياطي والاسترجاع |
+| [`docs/phase-1-report.md`](docs/phase-1-report.md) | تقرير تسليم المرحلة الأولى |
+
+---
+
+## 8. ملاحظات مهمة | Important notes
+
+- **المنصة وسيط تقني** ولا تتخذ أي قرار تمويلي. لا يُعرض أي طلب كموافَق عليه إلا
+  بتسجيل الجهة المموّلة للقرار.
+- **التقارير المالية في وحدة إدارة الموارد تقارير إدارية** وليست مخرجات نظام محاسبي
+  معتمد، ويجب مراجعتها من محاسب مؤهّل.
+- **لا يُجمع الرقم القومي ولا بيانات الحسابات البنكية** في هذه النسخة.
+- صياغات الشروط وسياسة الخصوصية **أولية** وتحتاج مراجعة قانونية قبل الإطلاق الرسمي.
+- الشعار المستخدم **عنصر نائب قابل للاستبدال** ولا ينتحل أي هوية رسمية.

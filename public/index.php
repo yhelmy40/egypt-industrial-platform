@@ -1,33 +1,24 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * public/index.php
- * نقطة الدخول الوحيدة للتطبيق | Single application entry point (front controller).
- * كل الطلبات تمر من هنا عبر .htaccess.
+ * نقطة الدخول الوحيدة للتطبيق | Single front controller.
+ *
+ * جذر الويب هو هذا المجلد فقط (/public). كل ما عدا ذلك — الكود والإعدادات
+ * والمرفوعات — خارج نطاق الويب ولا يمكن الوصول إليه مباشرة (§9).
+ * The web root is this directory only. Code, configuration and uploads live
+ * outside it and are unreachable over HTTP.
  */
 
-// 1) التكوين | Configuration
-require_once dirname(__DIR__) . '/config/config.php';
+use App\Core\Application;
+use App\Core\Request;
 
-// 2) بدء الجلسة بإعدادات آمنة | Start session with safe settings
-session_name(SESSION_NAME);
-session_set_cookie_params([
-    'httponly' => true,
-    'samesite' => 'Lax',
-]);
-session_start();
+$basePath = dirname(__DIR__);
 
-// 3) تحميل النواة | Load core
-require_once APP_PATH . '/core/Database.php';
-require_once APP_PATH . '/core/Model.php';
-require_once APP_PATH . '/core/Controller.php';
-require_once APP_PATH . '/core/Router.php';
+require $basePath . '/vendor/autoload.php';
 
-// 4) تحميل المساعدات | Load helpers
-require_once APP_PATH . '/helpers/functions.php';
-require_once APP_PATH . '/helpers/Auth.php';
-require_once APP_PATH . '/helpers/Csrf.php';
-require_once APP_PATH . '/helpers/Validator.php';
+$app     = Application::boot($basePath);
+$request = Request::capture();
 
-// 5) التوجيه | Dispatch
-$router = new Router();
-$router->dispatch();
+$app->handle($request)->send();

@@ -1,102 +1,103 @@
-/* =========================================================
-   app.js — تفاعلات الواجهة الأمامية
-   Egypt Industrial R&D Platform front-end interactions
-   ========================================================= */
+/**
+ * منصة رواد النيل — سكربت التطبيق | Application script.
+ *
+ * جافاسكربت خالص بلا مكتبات ولا أدوات بناء (§6). الحجم صغير عمداً لدعم
+ * الاتصالات المحدودة (§16). كل السلوكيات هنا تحسينات تدريجية: الصفحة تعمل
+ * كاملةً بدونها.
+ * Vanilla JS, no libraries, no bundler. Deliberately small for low-bandwidth
+ * connections. Everything here is progressive enhancement — the page works
+ * fully without it.
+ */
 
-document.addEventListener('DOMContentLoaded', function () {
+(function () {
+    'use strict';
 
-    /* ---- تبديل القائمة الجانبية على الجوال | Sidebar toggle (mobile) ---- */
-    const burger   = document.getElementById('btnBurger');
-    const sidebar  = document.getElementById('sidebar');
-    const backdrop = document.getElementById('sidebarBackdrop');
+    document.addEventListener('DOMContentLoaded', function () {
+        initSidebar();
+        initConfirmations();
+        initAutoDismiss();
+        initFormGuards();
+    });
 
-    function closeSidebar() {
-        if (sidebar) sidebar.classList.remove('open');
-        if (backdrop) backdrop.classList.remove('show');
-    }
-    if (burger && sidebar) {
-        burger.addEventListener('click', function () {
-            sidebar.classList.toggle('open');
-            if (backdrop) backdrop.classList.toggle('show');
+    /** القائمة الجانبية على الشاشات الصغيرة | Mobile sidebar toggle. */
+    function initSidebar() {
+        var toggle = document.querySelector('[data-sidebar-toggle]');
+        var sidebar = document.querySelector('.workspace-sidebar');
+        var backdrop = document.querySelector('.sidebar-backdrop');
+
+        if (!toggle || !sidebar) {
+            return;
+        }
+
+        function setOpen(open) {
+            sidebar.classList.toggle('is-open', open);
+            if (backdrop) {
+                backdrop.classList.toggle('is-visible', open);
+            }
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        toggle.addEventListener('click', function () {
+            setOpen(!sidebar.classList.contains('is-open'));
+        });
+
+        if (backdrop) {
+            backdrop.addEventListener('click', function () { setOpen(false); });
+        }
+
+        // إغلاق بمفتاح Escape — متطلّب إمكانية وصول لوحة المفاتيح
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                setOpen(false);
+                toggle.focus();
+            }
         });
     }
-    if (backdrop) backdrop.addEventListener('click', closeSidebar);
 
-    /* ---- بحث/تصفية الجداول | Live table search ---- */
-    document.querySelectorAll('[data-table-filter]').forEach(function (input) {
-        const targetSel = input.getAttribute('data-table-filter');
-        const table = document.querySelector(targetSel);
-        if (!table) return;
-        input.addEventListener('keyup', function () {
-            const term = input.value.trim().toLowerCase();
-            table.querySelectorAll('tbody tr').forEach(function (row) {
-                if (row.classList.contains('no-filter')) return;
-                row.style.display = row.textContent.toLowerCase().indexOf(term) > -1 ? '' : 'none';
+    /** تأكيد الإجراءات الحسّاسة | Confirm destructive actions. */
+    function initConfirmations() {
+        document.querySelectorAll('[data-confirm]').forEach(function (element) {
+            element.addEventListener('click', function (event) {
+                var message = element.getAttribute('data-confirm');
+                if (message && !window.confirm(message)) {
+                    event.preventDefault();
+                }
             });
         });
-    });
+    }
 
-    /* ---- تأكيد الحذف | Confirm destructive actions ---- */
-    document.querySelectorAll('[data-confirm]').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            if (!window.confirm(form.getAttribute('data-confirm') || 'هل أنت متأكد؟')) {
-                e.preventDefault();
-            }
-        });
-    });
-
-    /* ---- التحقق من النماذج (Bootstrap) | Bootstrap form validation ---- */
-    document.querySelectorAll('.needs-validation').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            if (!form.checkValidity()) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
-    });
-
-    /* ---- إخفاء التنبيهات تلقائياً | Auto-dismiss alerts ---- */
-    setTimeout(function () {
-        document.querySelectorAll('.alert-dismissible').forEach(function (a) {
-            try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch (e) {}
-        });
-    }, 6000);
-});
-
-/* =========================================================
-   مساعد الرسوم البيانية | Chart.js helpers (used in dashboard)
-   ========================================================= */
-window.EGCharts = {
-    palette: ['#0b2545', '#0e9594', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#457b9d', '#6d597a', '#b5838d', '#06d6a0'],
-
-    bar: function (canvasId, labels, data, label) {
-        const el = document.getElementById(canvasId);
-        if (!el || typeof Chart === 'undefined') return;
-        new Chart(el, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{ label: label || '', data: data, backgroundColor: '#0e9594', borderRadius: 6 }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-            }
-        });
-    },
-
-    doughnut: function (canvasId, labels, data) {
-        const el = document.getElementById(canvasId);
-        if (!el || typeof Chart === 'undefined') return;
-        new Chart(el, {
-            type: 'doughnut',
-            data: { labels: labels, datasets: [{ data: data, backgroundColor: this.palette }] },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Tahoma' } } } }
-            }
+    /** إخفاء رسائل النجاح تلقائياً | Auto-dismiss success alerts. */
+    function initAutoDismiss() {
+        document.querySelectorAll('.alert-success[role="alert"]').forEach(function (alert) {
+            window.setTimeout(function () {
+                alert.style.transition = 'opacity .4s ease';
+                alert.style.opacity = '0';
+                window.setTimeout(function () { alert.remove(); }, 400);
+            }, 6000);
         });
     }
-};
+
+    /**
+     * منع الإرسال المزدوج | Prevent double submission.
+     * مهم للنماذج التي تنشئ سجلات (طلبات، فواتير) حتى لا تتكرر.
+     */
+    function initFormGuards() {
+        document.querySelectorAll('form[data-guard]').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                var button = form.querySelector('[type="submit"]');
+                if (!button || button.disabled) {
+                    return;
+                }
+
+                // التعطيل مؤجّل حتى لا يُلغى إرسال النموذج في بعض المتصفحات
+                window.setTimeout(function () {
+                    button.disabled = true;
+                    button.setAttribute('aria-busy', 'true');
+                    if (button.dataset.busyLabel) {
+                        button.textContent = button.dataset.busyLabel;
+                    }
+                }, 0);
+            });
+        });
+    }
+})();

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends"
+         failOnRisky="true"
+         failOnWarning="true"
+         beStrictAboutOutputDuringTests="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerErrors="true">
+
+    <testsuites>
+        <!-- اختبارات الوحدة: منطق خالص بلا قاعدة بيانات -->
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <!-- اختبارات وظيفية: مسارات كاملة عبر قاعدة بيانات الاختبار -->
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+
+        <!-- اختبارات أمنية: العزل بين المستأجرين والصلاحيات (§17) -->
+        <testsuite name="Security">
+            <directory>tests/Security</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">app</directory>
+        </include>
+        <exclude>
+            <directory>app/Views</directory>
+        </exclude>
+    </source>
+
+    <php>
+        <!-- بيئة الاختبار تستخدم قاعدة بيانات منفصلة تُفرَّغ في كل تشغيل -->
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_DEBUG" value="true" force="true"/>
+        <env name="RATE_LIMIT_ENABLED" value="true" force="true"/>
+    </php>
+</phpunit>

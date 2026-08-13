@@ -1,0 +1,31 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+
+# --- Dependencies ---
+/vendor/
+
+# --- Runtime storage ---
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/exports/*
+!/storage/exports/.gitkeep
+/storage/backups/*
+!/storage/backups/.gitkeep
+
+# --- Tests ---
+/.phpunit.cache/
+/tests/coverage/
+.phpunit.result.cache
+
+# --- Editors / OS ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
