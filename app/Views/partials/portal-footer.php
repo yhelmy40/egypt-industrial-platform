@@ -19,6 +19,8 @@
                 <h5><?= __e('portal.footer_about') ?></h5>
                 <ul class="list-unstyled d-grid gap-2 mb-0">
                     <li><a href="<?= e(url('/about')) ?>"><?= __e('portal.nav_about') ?></a></li>
+                    <li><a href="<?= e(url('/knowledge')) ?>">مركز المعرفة</a></li>
+                    <li><a href="<?= e(url('/faq')) ?>">الأسئلة الشائعة</a></li>
                     <li><a href="<?= e(url('/contact')) ?>"><?= __e('portal.nav_contact') ?></a></li>
                 </ul>
             </div>
@@ -26,10 +28,10 @@
             <div class="col-6 col-lg-3">
                 <h5><?= __e('portal.footer_services') ?></h5>
                 <ul class="list-unstyled d-grid gap-2 mb-0">
-                    <li><span style="opacity:.5"><?= __e('portal.nav_marketplace') ?> — قريباً</span></li>
-                    <li><span style="opacity:.5"><?= __e('portal.nav_financing') ?> — قريباً</span></li>
-                    <li><span style="opacity:.5"><?= __e('portal.nav_non_financial') ?> — قريباً</span></li>
-                    <li><span style="opacity:.5"><?= __e('portal.nav_bds') ?> — قريباً</span></li>
+                    <li><a href="<?= e(url('/marketplace')) ?>"><?= __e('portal.nav_marketplace') ?></a></li>
+                    <li><a href="<?= e(url('/financing')) ?>"><?= __e('portal.nav_financing') ?></a></li>
+                    <li><a href="<?= e(url('/services')) ?>"><?= __e('portal.nav_non_financial') ?></a></li>
+                    <li><a href="<?= e(url('/directory')) ?>">دليل المنشآت</a></li>
                 </ul>
             </div>
 

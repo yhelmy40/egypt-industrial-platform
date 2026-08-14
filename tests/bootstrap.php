@@ -78,6 +78,9 @@ $runner->run('PaymentMethodsSeeder');
 $runner->run('AssessmentQuestionsSeeder');
 $runner->run('RolesAndPermissionsSeeder');
 $runner->run('SystemSettingsSeeder');
+// الصفحات الثابتة بذرة مرجعية لا تجريبية: روابطها في تذييل كل صفحة، فغيابها
+// يكسر مساراً عاماً. تُزرع في الاختبارات كما تُزرع في الإنتاج تماماً.
+$runner->run('StaticPagesSeeder');
 
 Database::disconnect();
 

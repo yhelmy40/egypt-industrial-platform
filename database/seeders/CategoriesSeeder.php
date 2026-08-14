@@ -24,8 +24,9 @@ final class CategoriesSeeder extends Seeder
         $count = $this->seedTree('listing', $this->tree());
         $count += $this->seedFlat('financial', $this->financialCategories());
         $count += $this->seedFlat('service', $this->serviceCategories());
+        $count += $this->seedFlat('article', $this->articleCategories());
 
-        $this->info("{$count} تصنيفاً للسوق والتمويل والخدمات.");
+        $this->info("{$count} تصنيفاً للسوق والتمويل والخدمات والمحتوى.");
     }
 
     /**
@@ -47,6 +48,28 @@ final class CategoriesSeeder extends Seeder
         }
 
         return count($items);
+    }
+
+    /**
+     * تصنيفات مركز المعرفة | Knowledge-centre categories (§4.11).
+     *
+     * تتبع أقسام المنصة نفسها، فيجد صاحب المشروع المادة قرب الشاشة التي
+     * تخصّها بدل تصنيف عامّ لا يدلّ على شيء.
+     *
+     * @return array<int,array{0:string,1:string}>
+     */
+    private function articleCategories(): array
+    {
+        return [
+            ['art_start', 'بدء المشروع وتأسيسه'],
+            ['art_formalize', 'التقنين والتراخيص'],
+            ['art_finance', 'التمويل والجدارة الائتمانية'],
+            ['art_sales', 'البيع والتسويق'],
+            ['art_operations', 'التشغيل والمخزون'],
+            ['art_accounting', 'الحسابات والفوترة'],
+            ['art_digital', 'التحول الرقمي'],
+            ['art_export', 'التصدير والأسواق الخارجية'],
+        ];
     }
 
     /** @return array<int,array{0:string,1:string}> */

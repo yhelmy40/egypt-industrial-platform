@@ -29,13 +29,6 @@ final class HomeController extends Controller
         ], 'public');
     }
 
-    public function about(Request $request): Response
-    {
-        return $this->view('public/about', [
-            'pageTitle' => __('portal.about_title'),
-            'objectives' => $this->initiativeObjectives(),
-        ], 'public');
-    }
 
     public function contact(Request $request): Response
     {
@@ -44,19 +37,7 @@ final class HomeController extends Controller
         ], 'public');
     }
 
-    public function terms(Request $request): Response
-    {
-        return $this->view('public/terms', [
-            'pageTitle' => __('portal.footer_terms'),
-        ], 'public');
-    }
 
-    public function privacy(Request $request): Response
-    {
-        return $this->view('public/privacy', [
-            'pageTitle' => __('portal.footer_privacy'),
-        ], 'public');
-    }
 
     /**
      * إحصاءات المنصة | Aggregate platform statistics.
@@ -98,25 +79,4 @@ final class HomeController extends Controller
         );
     }
 
-    /**
-     * أهداف المبادرة | Initiative objectives (§2).
-     * نص مؤسسي مستمد من السياق المُعطى، دون إضافات.
-     *
-     * @return array<int,string>
-     */
-    private function initiativeObjectives(): array
-    {
-        return [
-            'إطلاق الطاقات الكامنة لدى الشباب ورواد الأعمال.',
-            'زيادة عدد المشروعات الصغيرة والمتوسطة ودعم المشروعات القائمة.',
-            'تشجيع خلق فرص العمل وخفض معدلات البطالة.',
-            'دعم التصنيع المحلي والمنتجات القادرة على إحلال الواردات والمنافسة دولياً.',
-            'تشجيع التحول الرقمي والميكنة.',
-            'دعم وصول المشروعات إلى الخدمات المالية وغير المالية.',
-            'تقديم الدعم الاستشاري والفني للمشروعات ورواد الأعمال.',
-            'مساعدة الأفكار الابتكارية على التحول إلى مشروعات قابلة للتنفيذ.',
-            'مساندة البنوك وجهاز تنمية المشروعات في دعم وتمويل المشروعات.',
-            'تحقيق انتشار جغرافي يغطي جميع محافظات مصر.',
-        ];
-    }
 }

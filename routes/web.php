@@ -36,10 +36,19 @@ $router = new Router();
 // الزائر مسجّلاً (لعرض القائمة الصحيحة)، دون أن تفترض أي صلاحية.
 $router->group('', [ResolveTenant::class], static function (Router $r): void {
     $r->get('/', [PublicController\HomeController::class, 'index'])->name('home');
-    $r->get('/about', [PublicController\HomeController::class, 'about'])->name('about');
     $r->get('/contact', [PublicController\HomeController::class, 'contact'])->name('contact');
-    $r->get('/terms', [PublicController\HomeController::class, 'terms'])->name('terms');
-    $r->get('/privacy', [PublicController\HomeController::class, 'privacy'])->name('privacy');
+
+    // الصفحات الثابتة تُحرَّر من لوحة الإدارة، ومُعرّفاتها ثابتة في المسارات
+    // لا تُقرأ من العنوان: المتحكّم بوابة لثلاث صفحات معروفة لا لأي صفّ بالاسم.
+    $r->get('/about', [PublicController\ContentController::class, 'about'])->name('about');
+    $r->get('/terms', [PublicController\ContentController::class, 'terms'])->name('terms');
+    $r->get('/privacy', [PublicController\ContentController::class, 'privacy'])->name('privacy');
+
+    // ─── مركز المعرفة | Knowledge centre (§4.11) ───
+    $r->get('/knowledge', [PublicController\ContentController::class, 'articles'])->name('knowledge');
+    $r->get('/knowledge/{slug}', [PublicController\ContentController::class, 'article'])
+        ->name('knowledge.article');
+    $r->get('/faq', [PublicController\ContentController::class, 'faqs'])->name('faq');
 
     // ─── السوق العام | Public marketplace (§4.4) ───
     $r->get('/marketplace', [PublicController\MarketplaceController::class, 'index'])->name('marketplace');
@@ -601,6 +610,78 @@ $router->group(
             ->permission('finance.application.view_any');
         $r->post('/finance/applications/{id:\d+}/action', [Admin\FinanceScreeningController::class, 'action'])
             ->permission('finance.application.screen');
+
+        // ═══════════ المحتوى | Content (§4.11) ═══════════
+        // الكتابة والنشر صلاحيتان: `content.article.manage` تكتب وترسل،
+        // و`content.item.publish` تقرّر. محرّر بالأولى وحدها لا يرى أزرار القرار.
+        $r->get('/articles', [Admin\ContentController::class, 'articles'])
+            ->permission('content.article.manage')->name('admin.articles');
+        $r->get('/articles/new', [Admin\ContentController::class, 'createArticle'])
+            ->permission('content.article.manage');
+        $r->post('/articles', [Admin\ContentController::class, 'storeArticle'])
+            ->permission('content.article.manage');
+        $r->get('/articles/{id:\d+}/edit', [Admin\ContentController::class, 'editArticle'])
+            ->permission('content.article.manage');
+        $r->post('/articles/{id:\d+}', [Admin\ContentController::class, 'updateArticle'])
+            ->permission('content.article.manage');
+        $r->post('/articles/{id:\d+}/submit', [Admin\ContentController::class, 'submitArticle'])
+            ->permission('content.article.manage');
+        $r->post('/articles/{id:\d+}/decide', [Admin\ContentController::class, 'decideArticle'])
+            ->permission('content.item.publish');
+        $r->post('/articles/{id:\d+}/archive', [Admin\ContentController::class, 'archiveArticle'])
+            ->permission('content.item.publish');
+
+        $r->get('/faqs', [Admin\ContentController::class, 'faqs'])
+            ->permission('content.faq.manage')->name('admin.faqs');
+        $r->post('/faqs', [Admin\ContentController::class, 'saveFaq'])
+            ->permission('content.faq.manage');
+        $r->post('/faqs/{id:\d+}', [Admin\ContentController::class, 'saveFaq'])
+            ->permission('content.faq.manage');
+        $r->post('/faqs/{id:\d+}/submit', [Admin\ContentController::class, 'submitFaq'])
+            ->permission('content.faq.manage');
+        $r->post('/faqs/{id:\d+}/decide', [Admin\ContentController::class, 'decideFaq'])
+            ->permission('content.item.publish');
+        $r->post('/faqs/{id:\d+}/archive', [Admin\ContentController::class, 'archiveFaq'])
+            ->permission('content.item.publish');
+
+        // الصفحات الثابتة تُحرَّر ولا تُنشأ ولا تُحذف: مفاتيحها يعرفها الكود
+        $r->get('/pages', [Admin\ContentController::class, 'pages'])
+            ->permission('content.page.manage')->name('admin.pages');
+        $r->get('/pages/{slug}', [Admin\ContentController::class, 'editPage'])
+            ->permission('content.page.manage');
+        $r->post('/pages/{slug}', [Admin\ContentController::class, 'updatePage'])
+            ->permission('content.page.manage');
+        $r->post('/pages/{slug}/decide', [Admin\ContentController::class, 'decidePage'])
+            ->permission('content.item.publish');
+
+        // ═══════════ تقارير المنصة | Platform reports (§4.12) ═══════════
+        $r->get('/reports', [Admin\ReportsController::class, 'index'])
+            ->permission('reports.platform.view')->name('admin.reports');
+        // التصدير صلاحية مستقلّة: إخراج البيانات قرار أكبر من الاطّلاع عليها
+        $r->get('/reports/export', [Admin\ReportsController::class, 'export'])
+            ->permission('reports.data.export');
+
+        // ═══════════ ضبط المنصة | Platform administration (§4.13) ═══════════
+        $r->get('/users', [Admin\AdministrationController::class, 'users'])
+            ->permission('platform.user.view')->name('admin.users');
+        $r->post('/users/{id:\d+}/suspend', [Admin\AdministrationController::class, 'suspendUser'])
+            ->permission('platform.user.suspend');
+        $r->post('/users/{id:\d+}/restore', [Admin\AdministrationController::class, 'restoreUser'])
+            ->permission('platform.user.suspend');
+
+        // مصفوفة الأدوار للاطّلاع لا للتحرير: تحرير الصلاحيات من الويب يجعل
+        // تصعيد الامتياز خطوةً واحدة لمن يخترق حساب مدير.
+        $r->get('/roles', [Admin\AdministrationController::class, 'roles'])
+            ->permission('platform.role.view')->name('admin.roles');
+
+        $r->get('/settings', [Admin\AdministrationController::class, 'settings'])
+            ->permission('platform.settings.view')->name('admin.settings');
+        $r->post('/settings', [Admin\AdministrationController::class, 'updateSettings'])
+            ->permission('platform.settings.update');
+
+        // سجلّ التدقيق للقراءة فقط — لا مسار يعدّله أو يحذفه في المنصة كلّها
+        $r->get('/audit', [Admin\AdministrationController::class, 'audit'])
+            ->permission('platform.audit.view')->name('admin.audit');
     },
 );
 

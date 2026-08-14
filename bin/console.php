@@ -249,10 +249,64 @@ final class Console
             $checks['اتصال قاعدة البيانات'] = false;
         }
 
+        // ═══ فحوص الإنتاج | Production-only checks ═══
+        // هذه هي بوابة ما قبل النشر: إعداد خاطئ واحد هنا يعني منصة تعمل
+        // بجلسات غير مؤمّنة أو بأخطاء تكشف مسارات الخادم للزائر. الأمر يعيد
+        // رمز خروج غير صفري فيوقف أي سكربت نشر يفحص النتيجة.
         if (Config::get('app.env') === 'production') {
-            $checks['APP_DEBUG معطّل']    = Config::get('app.debug') === false;
-            $checks['الكوكيز آمنة (HTTPS)'] = Config::get('session.secure') === true;
+            $checks['APP_DEBUG معطّل']            = Config::get('app.debug') === false;
+            $checks['الكوكيز آمنة (HTTPS)']        = Config::get('session.secure') === true;
+            $checks['HSTS مفعّل']                  = Config::get('security.headers.hsts_enabled') === true;
+            $checks['مفتاح التطبيق ليس افتراضياً'] = !in_array(
+                (string) Config::get('app.key', ''),
+                ['', 'base64:CHANGE_ME', 'CHANGE_ME'],
+                true,
+            );
+
+            // البذور التجريبية تمتنع عن العمل في الإنتاج، والفحص يؤكّد أنها
+            // لم تُزرع في قاعدة إنتاج بالخطأ قبل ضبط البيئة.
+            try {
+                $demoUsers = (int) Database::scalar(
+                    "SELECT COUNT(*) FROM users WHERE email LIKE '%@nilepreneurs.test'",
+                );
+                $checks['لا حسابات تجريبية'] = $demoUsers === 0;
+            } catch (Throwable) {
+                $checks['لا حسابات تجريبية'] = false;
+            }
+
+            try {
+                $demoData = (int) Database::scalar(
+                    'SELECT (SELECT COUNT(*) FROM articles WHERE is_demo = 1)
+                          + (SELECT COUNT(*) FROM financing_products WHERE is_demo = 1)',
+                );
+                $checks['لا بيانات تجريبية منشورة'] = $demoData === 0;
+            } catch (Throwable) {
+                $checks['لا بيانات تجريبية منشورة'] = false;
+            }
         }
+
+        // ═══ فحوص تسري في كل البيئات | Checks that apply everywhere ═══
+        try {
+            $pending = (new Migrator($this->basePath . '/database/migrations'))->pending();
+            $checks['لا ترحيلات معلّقة'] = $pending === [];
+        } catch (Throwable) {
+            $checks['لا ترحيلات معلّقة'] = false;
+        }
+
+        // الصفحات الثابتة شرط تشغيل لا بيانات عرض: روابطها في تذييل كل صفحة
+        try {
+            $pages = (int) Database::scalar(
+                "SELECT COUNT(*) FROM static_pages WHERE slug IN ('about','terms','privacy')
+                  AND status = 'published'",
+            );
+            $checks['الصفحات الثابتة منشورة'] = $pages === 3;
+        } catch (Throwable) {
+            $checks['الصفحات الثابتة منشورة'] = false;
+        }
+
+        $checks['ملف .env خارج جذر الويب'] = !file_exists(
+            (string) Config::get('app.public_path') . '/.env',
+        );
 
         foreach ($checks as $label => $passed) {
             $this->line(($passed ? "  \033[32m✓\033[0m " : "  \033[31m✗\033[0m ") . $label);

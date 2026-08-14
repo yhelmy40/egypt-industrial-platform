@@ -11,7 +11,7 @@ $path = $_SERVER['REQUEST_URI'] ?? '';
 $sections = [
     'المتابعة' => [
         ['لوحة التحكم', '/admin', '▤', 'reports.platform.view', true],
-        ['تقارير المنصة', '/admin/reports', '📊', 'reports.platform.view', false],
+        ['تقارير المنصة', '/admin/reports', '📊', 'reports.platform.view', true],
     ],
     'المراجعة والاعتماد' => [
         ['طلبات التوثيق', '/admin/verifications', '✅', 'org.account.view_any', true],
@@ -23,16 +23,18 @@ $sections = [
         ['فرز طلبات التمويل', '/admin/finance/applications', '📋', 'finance.application.view_any', true],
     ],
     'المحتوى' => [
-        ['مركز المعرفة', '/admin/articles', '📚', 'content.article.manage', false],
-        ['الصفحات الثابتة', '/admin/pages', '📄', 'content.page.manage', false],
-        ['الأسئلة الشائعة', '/admin/faqs', '❓', 'content.faq.manage', false],
+        ['مركز المعرفة', '/admin/articles', '📚', 'content.article.manage', true],
+        ['الصفحات الثابتة', '/admin/pages', '📄', 'content.page.manage', true],
+        ['الأسئلة الشائعة', '/admin/faqs', '❓', 'content.faq.manage', true],
     ],
+    // البيانات المرجعية (المحافظات والقطاعات والتصنيفات) تُدار ببذور مرجعية
+    // تحت مراجعة الكود لا من واجهة، كالأدوار تماماً: تعديلها من الويب يفتح
+    // باب كسر مراجع قائمة في آلاف الصفوف بضغطة.
     'الضبط' => [
-        ['المستخدمون', '/admin/users', '👥', 'platform.user.view', false],
-        ['الأدوار والصلاحيات', '/admin/roles', '🔐', 'platform.role.view', false],
-        ['البيانات المرجعية', '/admin/reference', '🗂', 'platform.reference.manage', false],
-        ['إعدادات المنصة', '/admin/settings', '⚙', 'platform.settings.view', false],
-        ['سجل التدقيق', '/admin/audit', '📜', 'platform.audit.view', false],
+        ['المستخدمون', '/admin/users', '👥', 'platform.user.view', true],
+        ['الأدوار والصلاحيات', '/admin/roles', '🔐', 'platform.role.view', true],
+        ['إعدادات المنصة', '/admin/settings', '⚙', 'platform.settings.view', true],
+        ['سجل التدقيق', '/admin/audit', '📜', 'platform.audit.view', true],
     ],
 ];
 ?>
