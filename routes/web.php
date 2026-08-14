@@ -389,6 +389,146 @@ $router->group(
         $r->post('/assessment/suggestions/{id:\d+}/dismiss', [Sme\AssessmentController::class, 'dismissSuggestion'])
             ->permission('assessment.needs.view');
 
+        // ═══════════ إدارة العملاء | Customer management (§4.9) ═══════════
+        $r->get('/customers', [Sme\CustomersController::class, 'index'])
+            ->permission('crm.contact.view')->name('customers');
+        $r->get('/customers/new', [Sme\CustomersController::class, 'create'])
+            ->permission('crm.contact.manage');
+        $r->post('/customers', [Sme\CustomersController::class, 'store'])
+            ->permission('crm.contact.manage');
+        $r->get('/customers/{id:\d+}', [Sme\CustomersController::class, 'show'])
+            ->permission('crm.contact.view');
+        $r->get('/customers/{id:\d+}/edit', [Sme\CustomersController::class, 'edit'])
+            ->permission('crm.contact.manage');
+        $r->post('/customers/{id:\d+}', [Sme\CustomersController::class, 'update'])
+            ->permission('crm.contact.manage');
+        $r->post('/customers/{id:\d+}/archive', [Sme\CustomersController::class, 'archive'])
+            ->permission('crm.contact.manage');
+        $r->post('/customers/{id:\d+}/contacts', [Sme\CustomersController::class, 'addContact'])
+            ->permission('crm.contact.manage');
+        $r->post('/customers/{id:\d+}/contacts/remove', [Sme\CustomersController::class, 'removeContact'])
+            ->permission('crm.contact.manage');
+
+        // ─── المهتمّون والفرص والمهام | Leads, opportunities and tasks ───
+        $r->get('/pipeline/leads', [Sme\PipelineController::class, 'leads'])
+            ->permission('crm.lead.view')->name('leads');
+        $r->post('/pipeline/leads', [Sme\PipelineController::class, 'storeLead'])
+            ->permission('crm.lead.manage');
+        $r->post('/pipeline/leads/{id:\d+}/status', [Sme\PipelineController::class, 'updateLead'])
+            ->permission('crm.lead.manage');
+        // التحويل يُنشئ عميلاً، فيتطلّب صلاحية إدارة العملاء لا المهتمّين وحدها
+        $r->post('/pipeline/leads/{id:\d+}/convert', [Sme\PipelineController::class, 'convertLead'])
+            ->permission('crm.contact.manage');
+
+        $r->get('/pipeline/opportunities', [Sme\PipelineController::class, 'opportunities'])
+            ->permission('crm.opportunity.view')->name('opportunities');
+        $r->post('/pipeline/opportunities', [Sme\PipelineController::class, 'storeOpportunity'])
+            ->permission('crm.opportunity.manage');
+        $r->get('/pipeline/opportunities/{id:\d+}', [Sme\PipelineController::class, 'showOpportunity'])
+            ->permission('crm.opportunity.view');
+        $r->post('/pipeline/opportunities/{id:\d+}', [Sme\PipelineController::class, 'updateOpportunity'])
+            ->permission('crm.opportunity.manage');
+        $r->post('/pipeline/opportunities/{id:\d+}/stage', [Sme\PipelineController::class, 'moveStage'])
+            ->permission('crm.opportunity.manage');
+
+        $r->get('/pipeline/tasks', [Sme\PipelineController::class, 'tasks'])
+            ->permission('crm.task.manage')->name('crm_tasks');
+        $r->post('/pipeline/activities', [Sme\PipelineController::class, 'storeActivity'])
+            ->permission('crm.activity.manage');
+        $r->post('/pipeline/activities/{id:\d+}/complete', [Sme\PipelineController::class, 'completeActivity'])
+            ->permission('crm.activity.manage');
+        $r->post('/pipeline/activities/{id:\d+}/cancel', [Sme\PipelineController::class, 'cancelActivity'])
+            ->permission('crm.activity.manage');
+
+        // ═══════════ الأصناف والمخزون | Items and stock (§4.10) ═══════════
+        $r->get('/inventory', [Sme\InventoryController::class, 'index'])
+            ->permission('erp.item.view')->name('inventory');
+        $r->get('/inventory/new', [Sme\InventoryController::class, 'create'])
+            ->permission('erp.item.manage');
+        $r->post('/inventory', [Sme\InventoryController::class, 'store'])
+            ->permission('erp.item.manage');
+        $r->get('/inventory/{id:\d+}', [Sme\InventoryController::class, 'show'])
+            ->permission('erp.item.view');
+        $r->get('/inventory/{id:\d+}/edit', [Sme\InventoryController::class, 'edit'])
+            ->permission('erp.item.manage');
+        $r->post('/inventory/{id:\d+}', [Sme\InventoryController::class, 'update'])
+            ->permission('erp.item.manage');
+        $r->post('/inventory/{id:\d+}/archive', [Sme\InventoryController::class, 'archive'])
+            ->permission('erp.item.manage');
+        // تحريك الرصيد صلاحية مستقلّة عن تحرير بيانات الصنف
+        $r->post('/inventory/{id:\d+}/movements', [Sme\InventoryController::class, 'recordMovement'])
+            ->permission('erp.stock.manage');
+        $r->post('/inventory/{id:\d+}/adjust', [Sme\InventoryController::class, 'adjust'])
+            ->permission('erp.stock.manage');
+
+        // ═══════════ فواتير البيع والمقبوضات | Invoices and receipts (§4.10) ═══════════
+        $r->get('/invoices', [Sme\InvoicesController::class, 'index'])
+            ->permission('erp.invoice.view')->name('invoices');
+        $r->get('/invoices/new', [Sme\InvoicesController::class, 'create'])
+            ->permission('erp.invoice.manage');
+        $r->post('/invoices', [Sme\InvoicesController::class, 'store'])
+            ->permission('erp.invoice.manage');
+        $r->get('/invoices/{id:\d+}', [Sme\InvoicesController::class, 'show'])
+            ->permission('erp.invoice.view');
+        $r->get('/invoices/{id:\d+}/print', [Sme\InvoicesController::class, 'print'])
+            ->permission('erp.invoice.view');
+        $r->post('/invoices/{id:\d+}', [Sme\InvoicesController::class, 'update'])
+            ->permission('erp.invoice.manage');
+        $r->post('/invoices/{id:\d+}/lines', [Sme\InvoicesController::class, 'addLine'])
+            ->permission('erp.invoice.manage');
+        $r->post('/invoices/{id:\d+}/lines/remove', [Sme\InvoicesController::class, 'removeLine'])
+            ->permission('erp.invoice.manage');
+        $r->post('/invoices/{id:\d+}/discount', [Sme\InvoicesController::class, 'applyDiscount'])
+            ->permission('erp.invoice.manage');
+        $r->post('/invoices/{id:\d+}/issue', [Sme\InvoicesController::class, 'issue'])
+            ->permission('erp.invoice.manage');
+        $r->post('/invoices/{id:\d+}/cancel', [Sme\InvoicesController::class, 'cancel'])
+            ->permission('erp.invoice.manage');
+        // تسجيل المقبوضات صلاحية مستقلّة: من يحصّل ليس بالضرورة من يفوتر
+        $r->post('/invoices/{id:\d+}/payments', [Sme\InvoicesController::class, 'recordPayment'])
+            ->permission('erp.receipt.manage');
+        $r->post('/invoices/{id:\d+}/payments/remove', [Sme\InvoicesController::class, 'deletePayment'])
+            ->permission('erp.receipt.manage');
+
+        // ═══════════ المشتريات والموردون والمصروفات | Purchasing (§4.10) ═══════════
+        $r->get('/purchasing/suppliers', [Sme\PurchasingController::class, 'suppliers'])
+            ->permission('erp.supplier.manage')->name('suppliers');
+        $r->post('/purchasing/suppliers', [Sme\PurchasingController::class, 'storeSupplier'])
+            ->permission('erp.supplier.manage');
+        $r->post('/purchasing/suppliers/{id:\d+}', [Sme\PurchasingController::class, 'updateSupplier'])
+            ->permission('erp.supplier.manage');
+        $r->post('/purchasing/suppliers/{id:\d+}/archive', [Sme\PurchasingController::class, 'archiveSupplier'])
+            ->permission('erp.supplier.manage');
+
+        $r->get('/purchasing/orders', [Sme\PurchasingController::class, 'orders'])
+            ->permission('erp.purchase_order.manage')->name('purchase_orders');
+        $r->post('/purchasing/orders', [Sme\PurchasingController::class, 'storeOrder'])
+            ->permission('erp.purchase_order.manage');
+        $r->get('/purchasing/orders/{id:\d+}', [Sme\PurchasingController::class, 'showOrder'])
+            ->permission('erp.purchase_order.manage');
+        $r->post('/purchasing/orders/{id:\d+}/lines', [Sme\PurchasingController::class, 'addOrderLine'])
+            ->permission('erp.purchase_order.manage');
+        $r->post('/purchasing/orders/{id:\d+}/lines/remove', [Sme\PurchasingController::class, 'removeOrderLine'])
+            ->permission('erp.purchase_order.manage');
+        $r->post('/purchasing/orders/{id:\d+}/send', [Sme\PurchasingController::class, 'sendOrder'])
+            ->permission('erp.purchase_order.manage');
+        // الاستلام يحرّك المخزون، فيُحرَس بصلاحية المخزون لا الشراء
+        $r->post('/purchasing/orders/{id:\d+}/receive', [Sme\PurchasingController::class, 'receiveOrder'])
+            ->permission('erp.stock.manage');
+        $r->post('/purchasing/orders/{id:\d+}/cancel', [Sme\PurchasingController::class, 'cancelOrder'])
+            ->permission('erp.purchase_order.manage');
+
+        $r->get('/purchasing/expenses', [Sme\PurchasingController::class, 'expenses'])
+            ->permission('erp.expense.manage')->name('expenses');
+        $r->post('/purchasing/expenses', [Sme\PurchasingController::class, 'storeExpense'])
+            ->permission('erp.expense.manage');
+        $r->post('/purchasing/expenses/{id:\d+}/delete', [Sme\PurchasingController::class, 'deleteExpense'])
+            ->permission('erp.expense.manage');
+
+        // ═══════════ التقارير الإدارية | Management reports (§4.10) ═══════════
+        $r->get('/reports', [Sme\ReportsController::class, 'index'])
+            ->permission('erp.report.view')->name('erp_reports');
+
         // ─── الإشعارات | Notifications ───
         $r->get('/notifications', [Sme\NotificationController::class, 'index'])
             ->name('notifications');

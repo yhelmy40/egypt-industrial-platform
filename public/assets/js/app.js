@@ -21,7 +21,22 @@
         initRepeatableRows();
         initQuantityTotals();
         initAutoSubmit();
+        initPrintButton();
     });
+
+    /**
+     * زر الطباعة | The print button.
+     *
+     * كسائر السلوك في المنصة، الربط من هنا لا من سمة `onclick` سطرية تحجبها
+     * سياسة أمن المحتوى.
+     */
+    function initPrintButton() {
+        document.querySelectorAll('[data-print]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                window.print();
+            });
+        });
+    }
 
     /**
      * قوائم تُرسل نموذجها عند التغيير | Selects that submit on change.

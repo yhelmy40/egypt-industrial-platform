@@ -66,13 +66,21 @@ $sections = [
         ['باقات خدماتنا', '/app/services/offerings', '🧰', 'services.offering.manage', true],
         ['طلبات الخدمة الواردة', '/app/services/requests', '📨', 'services.request.view', true],
     ],
-    'إدارة الأعمال' => [
-        ['العملاء', '/app/crm/contacts', '👤', 'crm.contact.view', false],
-        ['الفرص البيعية', '/app/crm/opportunities', '📈', 'crm.opportunity.view', false],
-        ['المخزون', '/app/erp/inventory', '📦', 'erp.item.view', false],
-        ['الفواتير', '/app/erp/invoices', '🧾', 'erp.invoice.view', false],
-        ['المصروفات', '/app/erp/expenses', '💰', 'erp.expense.manage', false],
-        ['التقارير', '/app/reports', '📊', 'reports.organization.view', false],
+    // إدارة العملاء | Customer management (§4.9)
+    'إدارة العملاء' => [
+        ['العملاء', '/app/customers', '👤', 'crm.contact.view', true],
+        ['المهتمّون', '/app/pipeline/leads', '🌱', 'crm.lead.view', true],
+        ['خطّ الفرص', '/app/pipeline/opportunities', '📈', 'crm.opportunity.view', true],
+        ['المهام والمتابعات', '/app/pipeline/tasks', '✅', 'crm.task.manage', true],
+    ],
+    // إدارة الموارد المبسّطة | ERP-lite (§4.10)
+    'إدارة الموارد' => [
+        ['الأصناف والمخزون', '/app/inventory', '📦', 'erp.item.view', true],
+        ['فواتير البيع', '/app/invoices', '🧾', 'erp.invoice.view', true],
+        ['الموردون', '/app/purchasing/suppliers', '🚚', 'erp.supplier.manage', true],
+        ['أوامر الشراء', '/app/purchasing/orders', '📥', 'erp.purchase_order.manage', true],
+        ['المصروفات', '/app/purchasing/expenses', '💰', 'erp.expense.manage', true],
+        ['التقارير الإدارية', '/app/reports', '📊', 'erp.report.view', true],
     ],
 ];
 ?>

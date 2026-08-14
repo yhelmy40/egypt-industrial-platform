@@ -538,11 +538,45 @@ a:hover { text-decoration: underline; }
 .fs-sm { font-size: .875rem; }
 .fs-xs { font-size: .8rem; }
 
+/* ورقة المستند | The printable document sheet
+   -------------------------------------------------------------------------- */
+.print-page { background: var(--np-canvas); }
+.print-sheet {
+  max-width: 210mm;
+  margin: 1.5rem auto;
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid var(--np-line);
+  border-radius: var(--np-radius);
+  box-shadow: var(--np-shadow);
+}
+.print-toolbar { display: flex; gap: .5rem; justify-content: flex-end; margin-bottom: 1.5rem; }
+.print-doc__header { display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+.print-doc__title { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.print-doc__meta { font-size: .875rem; color: var(--np-ink-muted); }
+.print-doc__totals { margin-inline-start: auto; max-width: 22rem; }
+.print-doc__note {
+  margin-top: 1.5rem;
+  padding: .75rem 1rem;
+  border: 1px dashed var(--np-line);
+  border-radius: var(--np-radius);
+  font-size: .8rem;
+  color: var(--np-ink-muted);
+}
+
 /* الطباعة | Print */
 @media print {
   .workspace-sidebar, .workspace-header, .portal-header, .portal-footer, .no-print { display: none !important; }
   .workspace-main { margin: 0; }
   body { background: #fff; }
+  .print-sheet {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
 }
 
 /* تقليل الحركة لمن يفضّلها | Reduced motion */
