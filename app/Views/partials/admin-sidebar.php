@@ -18,6 +18,9 @@ $sections = [
         ['المنشآت', '/admin/verifications?status=', '🏢', 'org.account.view_any', true],
         ['مراجعة الإعلانات', '/admin/moderation', '🛒', 'marketplace.listing.moderate', true],
         ['الشكاوى والنزاعات', '/admin/complaints', '⚠', 'marketplace.complaint.manage', true],
+        ['اعتماد المنتجات التمويلية', '/admin/finance/products', '🏦', 'finance.product.moderate', true],
+        ['اعتماد باقات الخدمات', '/admin/services/offerings', '🧭', 'services.offering.moderate', true],
+        ['فرز طلبات التمويل', '/admin/finance/applications', '📋', 'finance.application.view_any', true],
     ],
     'المحتوى' => [
         ['مركز المعرفة', '/admin/articles', '📚', 'content.article.manage', false],

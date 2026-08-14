@@ -12,9 +12,9 @@ $current = $_SERVER['REQUEST_URI'] ?? '/';
 $navItems = [
     ['label' => __('portal.nav_home'),          'url' => url('/'),             'ready' => true],
     ['label' => __('portal.nav_about'),         'url' => url('/about'),        'ready' => true],
-    ['label' => __('portal.nav_marketplace'),   'url' => url('/marketplace'),  'ready' => false],
-    ['label' => __('portal.nav_financing'),     'url' => url('/financing'),    'ready' => false],
-    ['label' => __('portal.nav_non_financial'), 'url' => url('/services'),     'ready' => false],
+    ['label' => __('portal.nav_marketplace'),   'url' => url('/marketplace'),  'ready' => true],
+    ['label' => __('portal.nav_financing'),     'url' => url('/financing'),    'ready' => true],
+    ['label' => __('portal.nav_non_financial'), 'url' => url('/services'),     'ready' => true],
     ['label' => __('portal.nav_bds'),           'url' => url('/bds-centers'),  'ready' => false],
     ['label' => __('portal.nav_knowledge'),     'url' => url('/knowledge'),    'ready' => false],
     ['label' => __('portal.nav_contact'),       'url' => url('/contact'),      'ready' => true],

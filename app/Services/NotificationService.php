@@ -111,7 +111,13 @@ final class NotificationService
 
     /**
      * إشعار فريق المنصة | Notify platform reviewers.
-     * يُستخدم عند وصول طلب توثيق جديد إلى الطابور.
+     *
+     * الجمهور يُحدَّد بالصلاحية لا بالدور: من يملك صلاحية اتخاذ القرار هو من
+     * يُشعَر به. لذلك يختلف المستقبِلون باختلاف الطابور — توثيق المنشآت،
+     * اعتماد المنتجات التمويلية، اعتماد باقات الخدمات — ولا يُغرَق فريق
+     * المراجعة بإشعارات طوابير لا يعمل عليها.
+     * The audience is defined by permission, not by role: whoever may decide is
+     * whoever gets told. Reviewers are not flooded with queues they never touch.
      */
     public function notifyPlatformReviewers(
         string $type,
@@ -122,6 +128,7 @@ final class NotificationService
         ?int $organizationId = null,
         ?string $entityType = null,
         ?int $entityId = null,
+        string $permission = 'org.account.verify',
     ): int {
         $reviewers = Database::select(
             "SELECT DISTINCT u.id, u.email, u.name
@@ -130,9 +137,10 @@ final class NotificationService
                JOIN roles r ON r.id = ur.role_id
                JOIN role_permissions rp ON rp.role_id = r.id
                JOIN permissions p ON p.id = rp.permission_id
-              WHERE p.code = 'org.account.verify'
+              WHERE p.code = ?
                 AND u.status = 'active'
                 AND u.deleted_at IS NULL",
+            [$permission],
         );
 
         foreach ($reviewers as $reviewer) {

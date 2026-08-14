@@ -206,7 +206,10 @@ final class RolesAndPermissionsSeeder extends Seeder
             // --- الخدمات المالية | Financial services ---
             ['finance.product.view',        'finance', 'عرض المنتجات التمويلية', false, true],
             ['finance.product.manage',      'finance', 'إدارة المنتجات التمويلية', false, false],
-            ['finance.product.publish',     'finance', 'نشر منتج تمويلي', true, false],
+            // «النشر» من جانب المزوّد = الإرسال للاعتماد، لا الظهور المباشر
+            ['finance.product.publish',     'finance', 'إرسال منتج تمويلي للاعتماد', true, false],
+            // الاعتماد قرار المنصة وحدها (§4.5)
+            ['finance.product.moderate',    'finance', 'اعتماد أو رفض منتج تمويلي', true, false],
             ['finance.application.submit',  'finance', 'تقديم طلب تمويل', false, true],
             ['finance.application.view',    'finance', 'عرض طلبات التمويل الخاصة بالمنشأة', false, true],
             ['finance.application.view_any', 'finance', 'عرض كل طلبات التمويل', true, false],
@@ -218,6 +221,8 @@ final class RolesAndPermissionsSeeder extends Seeder
             // --- الخدمات غير المالية | Non-financial services ---
             ['services.offering.view',      'services', 'عرض الخدمات المتاحة', false, true],
             ['services.offering.manage',    'services', 'إدارة باقات الخدمات', false, false],
+            ['services.offering.publish',   'services', 'إرسال باقة خدمة للاعتماد', false, false],
+            ['services.offering.moderate',  'services', 'اعتماد أو رفض باقة خدمة', true, false],
             ['services.request.submit',     'services', 'طلب خدمة', false, true],
             ['services.request.view',       'services', 'عرض طلبات الخدمة', false, true],
             ['services.request.view_any',   'services', 'عرض كل طلبات الخدمة', true, false],
@@ -319,7 +324,9 @@ final class RolesAndPermissionsSeeder extends Seeder
                     'marketplace.listing.moderate', 'marketplace.order.view_any',
                     'marketplace.review.moderate', 'marketplace.complaint.view',
                     'marketplace.complaint.manage',
+                    'finance.product.view', 'finance.product.moderate',
                     'finance.application.view_any', 'finance.application.screen',
+                    'services.offering.view', 'services.offering.moderate',
                     'services.request.view_any', 'services.request.assign',
                     'assessment.needs.view_any', 'bds.case.view_any', 'bds.case.assign',
                     'content.article.view', 'reports.platform.view', 'reports.data.export',
@@ -404,7 +411,13 @@ final class RolesAndPermissionsSeeder extends Seeder
                 'org_type'    => 'bank',
                 'permissions' => [
                     'org.profile.*', 'org.document.*', 'org.member.*', 'org.page.*',
-                    'finance.product.*', 'finance.application.view', 'finance.application.review',
+                    // تُسرد صلاحيات المنتجات صراحةً: النمط finance.product.* كان
+                    // سيلتقط finance.product.moderate — وهي اعتماد المنصة للمنتج.
+                    // البنك يُنشئ ويُرسل للاعتماد؛ الاعتماد قرار المنصة (§4.5).
+                    // Listed explicitly: the finance.product.* wildcard would also
+                    // match finance.product.moderate — the platform's approval.
+                    'finance.product.view', 'finance.product.manage', 'finance.product.publish',
+                    'finance.application.view', 'finance.application.review',
                     'finance.application.decide',
                     'reports.provider.view', 'reports.data.export',
                     'content.article.view',
@@ -435,7 +448,11 @@ final class RolesAndPermissionsSeeder extends Seeder
                 'org_type'    => 'ngo',
                 'permissions' => [
                     'org.profile.*', 'org.document.*', 'org.member.*', 'org.page.*',
-                    'services.offering.*', 'services.request.view', 'services.quotation.submit',
+                    // مسرودة صراحةً لنفس السبب: services.offering.* كان سيلتقط
+                    // services.offering.moderate، وهي اعتماد المنصة للباقة.
+                    'services.offering.view', 'services.offering.manage',
+                    'services.offering.publish',
+                    'services.request.view', 'services.quotation.submit',
                     'services.milestone.manage',
                     'content.article.view',
                     'reports.provider.view', 'reports.data.export',
@@ -451,7 +468,11 @@ final class RolesAndPermissionsSeeder extends Seeder
                 'org_type'    => 'service_provider',
                 'permissions' => [
                     'org.profile.*', 'org.document.*', 'org.member.*', 'org.page.*',
-                    'services.offering.*', 'services.request.view', 'services.quotation.submit',
+                    // مسرودة صراحةً لنفس السبب: services.offering.* كان سيلتقط
+                    // services.offering.moderate، وهي اعتماد المنصة للباقة.
+                    'services.offering.view', 'services.offering.manage',
+                    'services.offering.publish',
+                    'services.request.view', 'services.quotation.submit',
                     'services.milestone.manage',
                     'content.article.view',
                     'reports.provider.view', 'reports.data.export',

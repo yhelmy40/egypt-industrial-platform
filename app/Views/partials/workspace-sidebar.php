@@ -15,7 +15,18 @@ $organization = TenantContext::organization();
 
 /**
  * كل عنصر: [التسمية، الرابط، الأيقونة، الصلاحية المطلوبة أو null، جاهز؟]
+ *
+ * بعض الصلاحيات يحملها أكثر من جانب بحكم طبيعتها — «عرض طلبات الخدمة» مثلاً
+ * يحملها المشروع ومقدّم الخدمة معاً — فالصلاحية وحدها لا تكفي لإخفاء قسم لا
+ * يعني المستخدم. لذلك يقيَّد قسم «ما نقدّمه» بنوع المنشأة أيضاً: عرضه لصاحب
+ * مشروع صغير يملأ قائمته بشاشات فارغة لا عمل له فيها.
  */
+$organizationType = (string) ($organization['type_code'] ?? '');
+
+/** أقسام مقصورة على أنواع منشآت بعينها | Sections limited to certain org types. */
+$sectionOrgTypes = [
+    'ما نقدّمه' => ['bank', 'service_provider', 'ngo', 'bds_center'],
+];
 $sections = [
     'العمل اليومي' => [
         ['لوحة التحكم', '/app', '▤', null, true],
@@ -34,12 +45,20 @@ $sections = [
         ['المنتجات والخدمات', '/app/listings', '🛒', 'marketplace.listing.view', true],
         ['عروض الأسعار', '/app/quotations', '🧾', 'marketplace.quotation.manage', true],
     ],
-    'الخدمات والدعم' => [
-        ['فرص التمويل', '/app/financing', '🏦', 'finance.product.view', false],
-        ['طلبات التمويل', '/app/financing/applications', '📋', 'finance.application.view', false],
-        ['الخدمات غير المالية', '/app/services', '🧭', 'services.request.view', false],
-        ['تقييم الاحتياجات', '/app/assessment', '📊', 'assessment.needs.submit', false],
-        ['الدعم الفني والإرشادي', '/app/bds', '🤝', 'bds.case.request', false],
+    'التمويل والخدمات' => [
+        ['فرص التمويل', '/app/finance/opportunities', '🏦', 'finance.product.view', true],
+        ['طلبات التمويل', '/app/finance/applications', '📋', 'finance.application.view', true],
+        ['الخدمات غير المالية', '/app/services/browse', '🧭', 'services.offering.view', true],
+        ['طلبات الخدمة', '/app/services/my-requests', '🤝', 'services.request.submit', true],
+        ['تقييم الاحتياجات', '/app/assessment', '📊', 'assessment.needs.view', true],
+        ['الدعم الفني والإرشادي', '/app/bds', '🎓', 'bds.case.request', false],
+    ],
+    // تظهر لمقدّمي الخدمات والمؤسسات المالية فقط، بحكم الصلاحيات
+    'ما نقدّمه' => [
+        ['منتجاتنا التمويلية', '/app/finance/products', '💳', 'finance.product.manage', true],
+        ['طلبات التمويل الواردة', '/app/finance/requests', '📥', 'finance.application.review', true],
+        ['باقات خدماتنا', '/app/services/offerings', '🧰', 'services.offering.manage', true],
+        ['طلبات الخدمة الواردة', '/app/services/requests', '📨', 'services.request.view', true],
     ],
     'إدارة الأعمال' => [
         ['العملاء', '/app/crm/contacts', '👤', 'crm.contact.view', false],
@@ -74,6 +93,13 @@ $sections = [
     <nav class="workspace-nav" aria-label="<?= __e('common.main_menu') ?>">
         <?php foreach ($sections as $sectionLabel => $items): ?>
             <?php
+            // القسم المقصور على أنواع بعينها يختفي عن غيرها قبل فحص الصلاحيات
+            if (isset($sectionOrgTypes[$sectionLabel])
+                && !in_array($organizationType, $sectionOrgTypes[$sectionLabel], true)
+            ) {
+                continue;
+            }
+
             // إخفاء القسم بالكامل إذا لم يملك المستخدم أي صلاحية داخله
             $visible = array_filter(
                 $items,

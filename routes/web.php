@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\Admin;
 use App\Controllers\Auth;
+use App\Controllers\Provider;
 use App\Controllers\Public as PublicController;
 use App\Controllers\Sme;
 use App\Core\Application;
@@ -43,6 +44,16 @@ $router->group('', [ResolveTenant::class], static function (Router $r): void {
     $r->get('/marketplace', [PublicController\MarketplaceController::class, 'index'])->name('marketplace');
     $r->get('/marketplace/{slug}', [PublicController\MarketplaceController::class, 'show'])->name('marketplace.listing');
     $r->get('/directory', [PublicController\MarketplaceController::class, 'directory'])->name('directory');
+
+    // ─── دليل التمويل والخدمات | Financing and services catalogue (§4.5, §4.6) ───
+    // معروضة للزوار عمداً: إخفاء الشروط خلف تسجيل الدخول يحوّل الاطّلاع عليها
+    // إلى مقايضة ببيانات شخصية.
+    $r->get('/financing', [PublicController\FinancingController::class, 'financingIndex'])->name('financing');
+    $r->get('/financing/{slug}', [PublicController\FinancingController::class, 'financingShow'])
+        ->name('financing.show');
+    $r->get('/services', [PublicController\FinancingController::class, 'servicesIndex'])->name('services');
+    $r->get('/services/{slug}', [PublicController\FinancingController::class, 'servicesShow'])
+        ->name('services.show');
 
     // ─── الصفحة التعريفية للمنشأة | SME storefront (§4.3) ───
     $r->get('/business/{slug}', [PublicController\MarketplaceController::class, 'businessPage'])->name('business.show');
@@ -223,6 +234,108 @@ $router->group(
         $r->post('/team/members/{id:\d+}/remove', [Sme\TeamController::class, 'removeMember'])
             ->permission('org.member.manage');
 
+        // ═══════════ الخدمات المالية | Financial services (§4.5) ═══════════
+
+        // — جانب المشروع | Applicant side —
+        $r->get('/finance/opportunities', [Sme\FinanceController::class, 'opportunities'])
+            ->permission('finance.product.view')->name('finance.opportunities');
+        $r->get('/finance/products/{id:\d+}/apply', [Sme\FinanceController::class, 'applyForm'])
+            ->permission('finance.application.submit');
+        $r->post('/finance/products/{id:\d+}/apply', [Sme\FinanceController::class, 'apply'])
+            ->permission('finance.application.submit');
+        $r->get('/finance/applications', [Sme\FinanceController::class, 'applications'])
+            ->permission('finance.application.view')->name('finance.applications');
+        $r->get('/finance/applications/{id:\d+}', [Sme\FinanceController::class, 'showApplication'])
+            ->permission('finance.application.view');
+        $r->post('/finance/applications/{id:\d+}/action', [Sme\FinanceController::class, 'applicationAction'])
+            ->permission('finance.application.submit');
+        $r->post('/finance/applications/{id:\d+}/documents', [Sme\FinanceController::class, 'uploadDocument'])
+            ->permission('finance.application.submit');
+
+        // — جانب المؤسسة المالية | Provider side —
+        // المنتجات تُنشأ هنا وتُرسل للاعتماد؛ النشر ليس قراراً للمؤسسة.
+        $r->get('/finance/products', [Provider\FinanceController::class, 'products'])
+            ->permission('finance.product.manage')->name('finance.products');
+        $r->get('/finance/products/new', [Provider\FinanceController::class, 'createForm'])
+            ->permission('finance.product.manage');
+        $r->post('/finance/products', [Provider\FinanceController::class, 'store'])
+            ->permission('finance.product.manage');
+        $r->get('/finance/products/{id:\d+}', [Provider\FinanceController::class, 'editForm'])
+            ->permission('finance.product.manage');
+        $r->post('/finance/products/{id:\d+}', [Provider\FinanceController::class, 'update'])
+            ->permission('finance.product.manage');
+        $r->post('/finance/products/{id:\d+}/submit', [Provider\FinanceController::class, 'submit'])
+            ->permission('finance.product.publish');
+        $r->post('/finance/products/{id:\d+}/archive', [Provider\FinanceController::class, 'archive'])
+            ->permission('finance.product.manage');
+
+        $r->get('/finance/requests', [Provider\FinanceController::class, 'requests'])
+            ->permission('finance.application.review')->name('finance.requests');
+        $r->get('/finance/requests/{id:\d+}', [Provider\FinanceController::class, 'showRequest'])
+            ->permission('finance.application.review');
+        $r->post('/finance/requests/{id:\d+}/documents', [Provider\FinanceController::class, 'requestDocument'])
+            ->permission('finance.application.review');
+        // القرار وحده يتطلّب finance.application.decide — المراجعة لا تكفي
+        $r->post('/finance/requests/{id:\d+}/action', [Provider\FinanceController::class, 'requestAction'])
+            ->permission('finance.application.decide');
+
+        // ═══════════ الخدمات غير المالية | Business services (§4.6) ═══════════
+
+        // — جانب المشروع | Applicant side —
+        $r->get('/services/browse', [Sme\ServicesController::class, 'browse'])
+            ->permission('services.offering.view')->name('services.browse');
+        $r->get('/services/browse/{id:\d+}/request', [Sme\ServicesController::class, 'requestForm'])
+            ->permission('services.request.submit');
+        $r->post('/services/browse/{id:\d+}/request', [Sme\ServicesController::class, 'submitRequest'])
+            ->permission('services.request.submit');
+        $r->get('/services/my-requests', [Sme\ServicesController::class, 'myRequests'])
+            ->permission('services.request.submit')->name('services.my_requests');
+        $r->get('/services/my-requests/{id:\d+}', [Sme\ServicesController::class, 'showRequest'])
+            ->permission('services.request.submit');
+        $r->post('/services/my-requests/{id:\d+}/action', [Sme\ServicesController::class, 'requestAction'])
+            ->permission('services.request.submit');
+
+        // — جانب مقدّم الخدمة | Provider side —
+        $r->get('/services/offerings', [Provider\ServicesController::class, 'offerings'])
+            ->permission('services.offering.manage')->name('services.offerings');
+        $r->get('/services/offerings/new', [Provider\ServicesController::class, 'createForm'])
+            ->permission('services.offering.manage');
+        $r->post('/services/offerings', [Provider\ServicesController::class, 'store'])
+            ->permission('services.offering.manage');
+        $r->get('/services/offerings/{id:\d+}', [Provider\ServicesController::class, 'editForm'])
+            ->permission('services.offering.manage');
+        $r->post('/services/offerings/{id:\d+}', [Provider\ServicesController::class, 'update'])
+            ->permission('services.offering.manage');
+        $r->post('/services/offerings/{id:\d+}/submit', [Provider\ServicesController::class, 'submit'])
+            ->permission('services.offering.publish');
+        $r->post('/services/offerings/{id:\d+}/archive', [Provider\ServicesController::class, 'archive'])
+            ->permission('services.offering.manage');
+
+        // البوابة هنا services.quotation.submit لا services.request.view: الأخيرة
+        // يحملها الطرفان بحكم أن كليهما يرى طلبات يخصّه، فلا تميّز جانب المزوّد.
+        $r->get('/services/requests', [Provider\ServicesController::class, 'requests'])
+            ->permission('services.quotation.submit')->name('services.requests');
+        $r->get('/services/requests/{id:\d+}', [Provider\ServicesController::class, 'showRequest'])
+            ->permission('services.quotation.submit');
+        $r->post('/services/requests/{id:\d+}/action', [Provider\ServicesController::class, 'requestAction'])
+            ->permission('services.quotation.submit');
+        $r->post('/services/requests/{id:\d+}/milestones', [Provider\ServicesController::class, 'addMilestone'])
+            ->permission('services.milestone.manage');
+        $r->post('/services/requests/{id:\d+}/milestones/update', [Provider\ServicesController::class, 'updateMilestone'])
+            ->permission('services.milestone.manage');
+
+        // ═══════════ تقييم الاحتياجات والاقتراحات | Assessment and matching (§4.7) ═══════════
+        $r->get('/assessment', [Sme\AssessmentController::class, 'show'])
+            ->permission('assessment.needs.view')->name('assessment');
+        $r->get('/assessment/form', [Sme\AssessmentController::class, 'form'])
+            ->permission('assessment.needs.submit');
+        $r->post('/assessment/{id:\d+}/submit', [Sme\AssessmentController::class, 'submit'])
+            ->permission('assessment.needs.submit');
+        $r->post('/assessment/refresh', [Sme\AssessmentController::class, 'refreshSuggestions'])
+            ->permission('assessment.needs.view');
+        $r->post('/assessment/suggestions/{id:\d+}/dismiss', [Sme\AssessmentController::class, 'dismissSuggestion'])
+            ->permission('assessment.needs.view');
+
         // ─── الإشعارات | Notifications ───
         $r->get('/notifications', [Sme\NotificationController::class, 'index'])
             ->name('notifications');
@@ -270,6 +383,31 @@ $router->group(
             ->permission('marketplace.listing.moderate');
         $r->get('/complaints', [Admin\ModerationController::class, 'complaints'])
             ->permission('marketplace.complaint.view')->name('admin.complaints');
+
+        // ─── اعتماد المنتجات التمويلية | Financing product approval (§4.5) ───
+        $r->get('/finance/products', [Admin\CatalogApprovalController::class, 'financingIndex'])
+            ->permission('finance.product.moderate')->name('admin.finance.products');
+        $r->get('/finance/products/{id:\d+}', [Admin\CatalogApprovalController::class, 'financingShow'])
+            ->permission('finance.product.moderate');
+        $r->post('/finance/products/{id:\d+}/decide', [Admin\CatalogApprovalController::class, 'financingDecide'])
+            ->permission('finance.product.moderate');
+
+        // ─── اعتماد باقات الخدمات | Service offering approval (§4.6) ───
+        $r->get('/services/offerings', [Admin\CatalogApprovalController::class, 'servicesIndex'])
+            ->permission('services.offering.moderate')->name('admin.services.offerings');
+        $r->get('/services/offerings/{id:\d+}', [Admin\CatalogApprovalController::class, 'servicesShow'])
+            ->permission('services.offering.moderate');
+        $r->post('/services/offerings/{id:\d+}/decide', [Admin\CatalogApprovalController::class, 'servicesDecide'])
+            ->permission('services.offering.moderate');
+
+        // ─── فرز طلبات التمويل | Financing application screening (§4.5) ───
+        // الفرز والإحالة فقط. لا يوجد هنا مسار اعتماد أو رفض: القرار للمموّل.
+        $r->get('/finance/applications', [Admin\FinanceScreeningController::class, 'index'])
+            ->permission('finance.application.view_any')->name('admin.finance.applications');
+        $r->get('/finance/applications/{id:\d+}', [Admin\FinanceScreeningController::class, 'show'])
+            ->permission('finance.application.view_any');
+        $r->post('/finance/applications/{id:\d+}/action', [Admin\FinanceScreeningController::class, 'action'])
+            ->permission('finance.application.screen');
     },
 );
 

@@ -279,6 +279,7 @@ final class AuthorizationTest extends TestCase
             'org.account.verify', 'org.account.suspend', 'org.account.view_any',
             'marketplace.listing.moderate', 'marketplace.order.view_any',
             'marketplace.review.moderate', 'marketplace.complaint.manage',
+            'finance.product.moderate', 'services.offering.moderate',
             'finance.application.view_any', 'finance.application.screen',
             'services.request.view_any', 'assessment.needs.view_any',
             'assessment.template.manage', 'bds.case.view_any',

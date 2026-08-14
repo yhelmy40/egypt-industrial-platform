@@ -75,6 +75,7 @@ $runner->run('OrganizationTypesSeeder');
 $runner->run('DocumentTypesSeeder');
 $runner->run('CategoriesSeeder');
 $runner->run('PaymentMethodsSeeder');
+$runner->run('AssessmentQuestionsSeeder');
 $runner->run('RolesAndPermissionsSeeder');
 $runner->run('SystemSettingsSeeder');
 

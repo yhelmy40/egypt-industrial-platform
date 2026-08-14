@@ -1,6 +1,6 @@
 # قاموس البيانات | Database Dictionary
 
-نطاق هذا المستند: الجداول المُنفَّذة حتى **المرحلة الثالثة** (48 جدولاً).
+نطاق هذا المستند: الجداول المُنفَّذة حتى **المرحلة الرابعة** (60 جدولاً).
 تُضاف بقية المجموعات مع مراحلها.
 
 **اتفاقيات عامة:** InnoDB · `utf8mb4_unicode_ci` · `created_at`/`updated_at` على كل
@@ -292,4 +292,109 @@ organizations ──< quotations ──< quotation_items
                       └──1 orders (converted_order_id)
 orders ──1 reviews ──> organizations · listings
 organizations · orders · listings ──< complaints
+```
+
+---
+
+## المجموعة 9: الخدمات المالية (المرحلة الرابعة)
+
+### `financing_products` — المنتجات التمويلية
+| العمود | ملاحظات |
+|---|---|
+| `organization_id` | المؤسسة المالية المالكة |
+| `financing_type` | `working_capital`·`asset_finance`·`microfinance`·`trade_finance`·`leasing`·`grant`·`equity`·`other` |
+| `min_amount`·`max_amount` | شريحة التمويل — التصفية تطابق الشريحة لا سعراً واحداً |
+| `rate_note_ar` | **نص** لا رقم: المنصة لا تحسب أقساطاً ولا تحوّل نسباً |
+| `eligibility_summary_ar`·`required_documents_ar` | تُعرض كقوائم، سطر لكل بند |
+| `min_years_in_business`·`min_annual_revenue`·`requires_formal_registration` | قواعد ترتيب الاقتراحات — **لا تحجب** منتجاً عن أحد |
+| `eligible_governorate_ids`·`eligible_sector_ids` | قوائم معرّفات؛ الفارغ يعني «الكل»، والمطابقة بـ `FIND_IN_SET` لا `LIKE` |
+| `status` | `draft`→`pending_review`→`published`، أو `rejected`·`archived` |
+| `approved_by`·`approved_at` | **ختم اعتماد المنصة** — يُمسح عند الرفض |
+| `is_demo` | يظهر بوسم «بيانات تجريبية» (§15) |
+
+فهرس `FULLTEXT` على الاسم والوصفين، وفهرس تصفّح `(status, financing_type, deleted_at)`.
+
+### `financing_applications` — طلبات التمويل
+| العمود | ملاحظات |
+|---|---|
+| `organization_id` / `provider_organization_id` | الطرفان، وكل جانب يُقيَّد على عموده |
+| `product_name_ar` | نسخة مجمّدة وقت التقديم — أرشفة المنتج لا تفسد الطلب |
+| `status` | عشر حالات؛ `approved`·`rejected` نهائيتان |
+| `screened_by`·`screening_note` | فرز المنصة — الملاحظة **داخلية لا تُعرض للمشروع** |
+| `decided_by`·`decided_at`·`decision_note_ar` | **قرار المزوّد وحده**؛ تُكتب في نفس عبارة `approved` |
+| `approved_amount`·`approved_tenor_months` | قد يختلفان عمّا طُلب |
+| `tracking_token` | 48 حرفاً، `ascii_bin` |
+
+### `financing_application_documents`
+المزوّد يطلب مستنداً باسمه والمشروع يرفعه. الملف في `media` بمرئية `private`،
+ولا يُقدَّم إلا عبر `FileController` المفوِّض. العمودان `organization_id` و
+`provider_organization_id` مكرّران عمداً ليُقيَّد كل طرف على عموده.
+
+### `financing_application_history`
+إلحاقي. `note_ar` يراه المشروع، و`internal_note_ar` **لا يراه أبداً** — الحذف يتم في
+`FinancingApplicationService::history($id, false)` لا في القالب.
+
+---
+
+## المجموعة 10: الخدمات غير المالية (المرحلة الرابعة)
+
+### `service_offerings` — باقات الخدمات
+| العمود | ملاحظات |
+|---|---|
+| `service_type` | عشرة أنواع من استشارات إلى شهادات جودة |
+| `delivery_mode` | `onsite`·`remote`·`hybrid` |
+| `pricing_mode` | `fixed`·`range`·`quote`·`free` |
+| `funded_by_ar` | **إلزامي عند `free`**: «مجاني» بلا مصدر يوحي بأن المنصة تتحمّل التكلفة |
+| `covers_all_governorates`·`governorate_ids` | الباقة العامة لا تختفي عند تحديد محافظة |
+| `status`·`approved_by`·`approved_at` | نفس بوابة اعتماد المنتجات التمويلية |
+
+### `service_requests` — طلبات الخدمة
+تسع حالات. `proposed_price` و`proposal_note_ar` يكتبهما المزوّد، و`responded_at`
+يسجّل ردّ المشروع. `referred_by_user_id`/`referred_by_organization_id` جاهزان لإحالة
+مراكز تطوير الأعمال في المرحلة الخامسة.
+
+### `service_milestones` · `service_request_history`
+مراحل التنفيذ يديرها المزوّد ويراها الطرفان. السجل إلحاقي بفاعل لكل انتقال.
+
+---
+
+## المجموعة 11: التقييم والمطابقة (المرحلة الرابعة)
+
+### `assessment_questions`
+أسئلة تديرها المنصة: `section` من ستة مجالات، `answer_type` = `scale`·`boolean`·
+`choice`·`number`·`text`، و`weight` يحدّد ثقل السؤال في درجة مجاله.
+الأسئلة **بيانات لا كود**: تعديل الاستبيان لا يحتاج نشر إصدار.
+
+### `needs_assessments` · `assessment_answers`
+درجة لكل مجال من 0 إلى 100 و`priority_sections` بأضعف مجالين.
+`UNIQUE(assessment_id, question_id)` يمنع ازدواج الإجابة.
+الدرجات **معلنة ذاتياً بلا تحقّق مستندي**، وليست تقييماً ائتمانياً.
+
+### `match_suggestions`
+| العمود | ملاحظات |
+|---|---|
+| `target_type`·`target_id` | `financing_product` أو `service_offering` |
+| `score` | 0–100، **ترتيب لا حجب** |
+| `reasons_ar` | تفسير الاقتراح، سطر لكل سبب؛ الأسطر المبدوءة بـ ⚠ فجوات |
+| `status` | `suggested`·`viewed`·`acted`·`dismissed` — والمخفي يبقى مخفياً بعد كل تحديث |
+
+`UNIQUE(organization_id, target_type, target_id)` يجعل إعادة التوليد عملية تحديث لا تكرار.
+
+---
+
+## مخطط العلاقات (المرحلة الرابعة)
+
+```
+organizations ──< financing_products >── categories (type=financial)
+organizations ──< financing_applications >── financing_products
+                        ├──< financing_application_documents >── media
+                        └──< financing_application_history
+
+organizations ──< service_offerings >── categories (type=service)
+organizations ──< service_requests >── service_offerings
+                        ├──< service_milestones
+                        └──< service_request_history
+
+assessment_questions ──< assessment_answers >── needs_assessments ──> organizations
+organizations ──< match_suggestions ──> financing_products | service_offerings
 ```

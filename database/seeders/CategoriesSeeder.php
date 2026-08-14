@@ -21,12 +21,79 @@ final class CategoriesSeeder extends Seeder
 
     public function run(): void
     {
+        $count = $this->seedTree('listing', $this->tree());
+        $count += $this->seedFlat('financial', $this->financialCategories());
+        $count += $this->seedFlat('service', $this->serviceCategories());
+
+        $this->info("{$count} تصنيفاً للسوق والتمويل والخدمات.");
+    }
+
+    /**
+     * تصنيفات مسطّحة | A flat category list (financing and services need no tree).
+     *
+     * @param array<int,array{0:string,1:string}> $items
+     */
+    private function seedFlat(string $type, array $items): int
+    {
+        foreach ($items as $index => [$code, $nameAr]) {
+            $this->upsert('categories', [
+                'parent_id'  => null,
+                'type'       => $type,
+                'code'       => $code,
+                'name_ar'    => $nameAr,
+                'is_active'  => 1,
+                'sort_order' => ($index + 1) * 10,
+            ], ['type', 'code']);
+        }
+
+        return count($items);
+    }
+
+    /** @return array<int,array{0:string,1:string}> */
+    private function financialCategories(): array
+    {
+        return [
+            ['fin_startup', 'تمويل بدء النشاط'],
+            ['fin_growth', 'تمويل التوسّع والنمو'],
+            ['fin_equipment', 'تمويل المعدات والأصول'],
+            ['fin_working_capital', 'تمويل رأس المال العامل'],
+            ['fin_export', 'تمويل التصدير'],
+            ['fin_green', 'تمويل التحوّل الأخضر وكفاءة الطاقة'],
+            ['fin_women', 'برامج تمويل المرأة'],
+            ['fin_youth', 'برامج تمويل الشباب'],
+        ];
+    }
+
+    /** @return array<int,array{0:string,1:string}> */
+    private function serviceCategories(): array
+    {
+        return [
+            ['svc_business_planning', 'دراسات الجدوى وخطط العمل'],
+            ['svc_financial_advisory', 'الاستشارات المالية والمحاسبية'],
+            ['svc_legal_advisory', 'الاستشارات القانونية والتقنين'],
+            ['svc_marketing', 'التسويق والعلامة التجارية'],
+            ['svc_digital', 'التحوّل الرقمي والتجارة الإلكترونية'],
+            ['svc_quality', 'الجودة والمواصفات والشهادات'],
+            ['svc_production', 'تطوير الإنتاج وكفاءة التشغيل'],
+            ['svc_export_readiness', 'جاهزية التصدير والأسواق الخارجية'],
+            ['svc_training', 'التدريب وبناء القدرات'],
+            ['svc_design', 'التصميم وتطوير المنتج'],
+        ];
+    }
+
+    /**
+     * شجرة تصنيفات من مستويين | A two-level category tree.
+     *
+     * @param array<int,array{0:string,1:string,2:string,3:array<int,array{0:string,1:string}>}> $tree
+     */
+    private function seedTree(string $type, array $tree): int
+    {
         $count = 0;
 
-        foreach ($this->tree() as $index => [$code, $nameAr, $icon, $children]) {
+        foreach ($tree as $index => [$code, $nameAr, $icon, $children]) {
             $parentId = $this->upsert('categories', [
                 'parent_id'  => null,
-                'type'       => 'listing',
+                'type'       => $type,
                 'code'       => $code,
                 'name_ar'    => $nameAr,
                 'icon'       => $icon,
@@ -39,7 +106,7 @@ final class CategoriesSeeder extends Seeder
             foreach ($children as $childIndex => [$childCode, $childName]) {
                 $this->upsert('categories', [
                     'parent_id'  => $parentId,
-                    'type'       => 'listing',
+                    'type'       => $type,
                     'code'       => $childCode,
                     'name_ar'    => $childName,
                     'is_active'  => 1,
@@ -50,7 +117,7 @@ final class CategoriesSeeder extends Seeder
             }
         }
 
-        $this->info("{$count} تصنيفاً للسوق.");
+        return $count;
     }
 
     /**

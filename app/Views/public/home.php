@@ -8,15 +8,18 @@
 
 /**
  * نقاط الدخول حسب النيّة | Intent entry points.
- * المسارات غير الجاهزة توجّه إلى التسجيل بدل رابط مكسور، مع توضيح ذلك للمستخدم.
+ *
+ * ما صار له وجهة حقيقية يُشير إليها مباشرةً: إرسال زائر يبحث عن تمويل إلى
+ * شاشة تسجيل بدل دليل التمويل يجعله يدفع ثمن التسجيل قبل أن يعرف إن كان
+ * هناك ما يناسبه. ما لم يُبنَ بعد يبقى على التسجيل حتى تصل مرحلته.
  */
 $intents = [
     ['icon' => '🚀', 'title' => __('portal.intent_start'),    'desc' => __('portal.intent_start_desc'),    'url' => url('/auth/register')],
-    ['icon' => '📈', 'title' => __('portal.intent_grow'),     'desc' => __('portal.intent_grow_desc'),     'url' => url('/auth/register')],
-    ['icon' => '🏦', 'title' => __('portal.intent_finance'),  'desc' => __('portal.intent_finance_desc'),  'url' => url('/auth/register')],
-    ['icon' => '🧭', 'title' => __('portal.intent_consult'),  'desc' => __('portal.intent_consult_desc'),  'url' => url('/auth/register')],
-    ['icon' => '🛒', 'title' => __('portal.intent_sell'),     'desc' => __('portal.intent_sell_desc'),     'url' => url('/auth/register')],
-    ['icon' => '💻', 'title' => __('portal.intent_digitize'), 'desc' => __('portal.intent_digitize_desc'), 'url' => url('/auth/register')],
+    ['icon' => '📈', 'title' => __('portal.intent_grow'),     'desc' => __('portal.intent_grow_desc'),     'url' => url('/services')],
+    ['icon' => '🏦', 'title' => __('portal.intent_finance'),  'desc' => __('portal.intent_finance_desc'),  'url' => url('/financing')],
+    ['icon' => '🧭', 'title' => __('portal.intent_consult'),  'desc' => __('portal.intent_consult_desc'),  'url' => url('/services')],
+    ['icon' => '🛒', 'title' => __('portal.intent_sell'),     'desc' => __('portal.intent_sell_desc'),     'url' => url('/marketplace')],
+    ['icon' => '💻', 'title' => __('portal.intent_digitize'), 'desc' => __('portal.intent_digitize_desc'), 'url' => url('/services?service_type=digital')],
 ];
 
 $steps = [

@@ -169,6 +169,76 @@ abstract class TestCase extends BaseTestCase
         );
     }
 
+    /**
+     * إنشاء منتج تمويلي | Create a financing product.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    protected function createFinancingProduct(int $organizationId, array $attributes = []): int
+    {
+        static $counter = 0;
+        $counter++;
+
+        $data = array_merge([
+            'organization_id'        => $organizationId,
+            'name_ar'                => 'منتج تمويلي ' . $counter,
+            'slug'                   => 'test-product-' . $counter . '-' . bin2hex(random_bytes(4)),
+            'short_description'      => 'وصف مختصر للمنتج.',
+            'financing_type'         => 'working_capital',
+            'min_amount'             => 10000.00,
+            'max_amount'             => 500000.00,
+            'currency_code'          => 'EGP',
+            'rate_note_ar'           => 'عائد يُحدَّد عند التعاقد.',
+            'eligibility_summary_ar' => 'مشروع قائم.',
+            'required_documents_ar'  => 'السجل التجاري.',
+            'status'                 => 'published',
+            'published_at'           => date('Y-m-d H:i:s'),
+        ], $attributes);
+
+        $columns = array_keys($data);
+
+        return Database::insert(
+            'INSERT INTO financing_products (`' . implode('`, `', $columns) . '`) VALUES ('
+            . implode(', ', array_fill(0, count($columns), '?')) . ')',
+            array_values($data),
+        );
+    }
+
+    /**
+     * إنشاء باقة خدمة | Create a service offering.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    protected function createServiceOffering(int $organizationId, array $attributes = []): int
+    {
+        static $counter = 0;
+        $counter++;
+
+        $data = array_merge([
+            'organization_id'         => $organizationId,
+            'name_ar'                 => 'باقة خدمة ' . $counter,
+            'slug'                    => 'test-offering-' . $counter . '-' . bin2hex(random_bytes(4)),
+            'short_description'       => 'وصف مختصر للباقة.',
+            'service_type'            => 'consulting',
+            'delivery_mode'           => 'hybrid',
+            'pricing_mode'            => 'quote',
+            'currency_code'           => 'EGP',
+            'target_audience_ar'      => 'المشروعات الصغيرة.',
+            'deliverables_ar'         => 'تقرير نهائي.',
+            'covers_all_governorates' => 1,
+            'status'                  => 'published',
+            'published_at'            => date('Y-m-d H:i:s'),
+        ], $attributes);
+
+        $columns = array_keys($data);
+
+        return Database::insert(
+            'INSERT INTO service_offerings (`' . implode('`, `', $columns) . '`) VALUES ('
+            . implode(', ', array_fill(0, count($columns), '?')) . ')',
+            array_values($data),
+        );
+    }
+
     /** ربط مستخدم بمنشأة بدور | Attach a user to an organization with a role. */
     protected function addMember(
         int $organizationId,
