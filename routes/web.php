@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\Admin;
 use App\Controllers\Auth;
+use App\Controllers\Bds;
 use App\Controllers\Provider;
 use App\Controllers\Public as PublicController;
 use App\Controllers\Sme;
@@ -323,6 +324,58 @@ $router->group(
             ->permission('services.milestone.manage');
         $r->post('/services/requests/{id:\d+}/milestones/update', [Provider\ServicesController::class, 'updateMilestone'])
             ->permission('services.milestone.manage');
+
+        // ═══════════ دعم مراكز تطوير الأعمال | BDS support (§4.8) ═══════════
+
+        // — جانب المشروع | The SME side —
+        $r->get('/bds/centers', [Sme\SupportController::class, 'centers'])
+            ->permission('bds.case.request')->name('bds.centers');
+        $r->get('/bds/centers/{id:\d+}/request', [Sme\SupportController::class, 'requestForm'])
+            ->permission('bds.case.request');
+        $r->post('/bds/centers/{id:\d+}/request', [Sme\SupportController::class, 'submitRequest'])
+            ->permission('bds.case.request');
+        $r->get('/bds/my-cases', [Sme\SupportController::class, 'myCases'])
+            ->permission('bds.case.request')->name('bds.my_cases');
+        $r->get('/bds/my-cases/{id:\d+}', [Sme\SupportController::class, 'showCase'])
+            ->permission('bds.case.request');
+        $r->post('/bds/my-cases/{id:\d+}/action', [Sme\SupportController::class, 'action'])
+            ->permission('bds.case.request');
+        $r->post('/bds/my-cases/{id:\d+}/notes', [Sme\SupportController::class, 'addNote'])
+            ->permission('bds.case.request');
+        $r->post('/bds/my-cases/{id:\d+}/tasks', [Sme\SupportController::class, 'updateTask'])
+            ->permission('bds.case.request');
+        $r->post('/bds/my-cases/{id:\d+}/referrals', [Sme\SupportController::class, 'respondToReferral'])
+            ->permission('bds.case.request');
+        $r->post('/bds/my-cases/{id:\d+}/rate', [Sme\SupportController::class, 'rate'])
+            ->permission('bds.case.request');
+
+        // — جانب المركز | The centre side —
+        // البوابة bds.case.manage لا bds.case.view: الأخيرة يحملها صاحب المشروع
+        // أيضاً ليرى حالته، فلا تميّز مساحة عمل المركز.
+        $r->get('/bds/cases', [Bds\CaseController::class, 'index'])
+            ->permission('bds.case.manage')->name('bds.cases');
+        $r->get('/bds/cases/{id:\d+}', [Bds\CaseController::class, 'show'])
+            ->permission('bds.case.manage');
+        $r->post('/bds/cases/{id:\d+}/action', [Bds\CaseController::class, 'action'])
+            ->permission('bds.case.manage');
+        // كتابة الملاحظات تتطلّب صلاحية الملاحظات الداخلية؛ المشتركة تُفحص
+        // إضافةً داخل المتحكّم لأنها تصل للمشروع.
+        $r->post('/bds/cases/{id:\d+}/notes', [Bds\CaseController::class, 'addNote'])
+            ->permission('bds.note.internal');
+        $r->post('/bds/cases/{id:\d+}/consultations', [Bds\CaseController::class, 'scheduleConsultation'])
+            ->permission('bds.consultation.manage');
+        $r->post('/bds/cases/{id:\d+}/consultations/record', [Bds\CaseController::class, 'recordConsultation'])
+            ->permission('bds.consultation.manage');
+        $r->post('/bds/cases/{id:\d+}/plans', [Bds\CaseController::class, 'createPlan'])
+            ->permission('bds.plan.manage');
+        $r->post('/bds/cases/{id:\d+}/plans/tasks', [Bds\CaseController::class, 'addTask'])
+            ->permission('bds.plan.manage');
+        $r->post('/bds/cases/{id:\d+}/plans/share', [Bds\CaseController::class, 'sharePlan'])
+            ->permission('bds.plan.manage');
+        $r->post('/bds/cases/{id:\d+}/plans/tasks/update', [Bds\CaseController::class, 'updateTask'])
+            ->permission('bds.plan.manage');
+        $r->post('/bds/cases/{id:\d+}/referrals', [Bds\CaseController::class, 'refer'])
+            ->permission('bds.referral.create');
 
         // ═══════════ تقييم الاحتياجات والاقتراحات | Assessment and matching (§4.7) ═══════════
         $r->get('/assessment', [Sme\AssessmentController::class, 'show'])

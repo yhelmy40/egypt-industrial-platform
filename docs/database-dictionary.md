@@ -398,3 +398,83 @@ organizations ──< service_requests >── service_offerings
 assessment_questions ──< assessment_answers >── needs_assessments ──> organizations
 organizations ──< match_suggestions ──> financing_products | service_offerings
 ```
+
+---
+
+## المجموعة 12: حالات مراكز تطوير الأعمال (المرحلة الخامسة)
+
+> **نقطة الإنفاذ في هذه المجموعة هي `BdsCaseRepository` لا القوالب.** كل جدول هنا
+> يحمل `organization_id` و`center_organization_id` معاً، والاستعلام يُقيَّد على عمود
+> **الجهة القارئة** — فالمشروع لا يبلغ نسخة المركز ولو مرّر `side = 'center'`.
+
+### `bds_cases`
+ملفّ الدعم. `case_number` مرجع فريد يُعرض للطرفين.
+
+| العمود | ملاحظات |
+|---|---|
+| `organization_id`·`center_organization_id` | طرفا الحالة؛ الاستعلام يُقيَّد على أحدهما بحسب الجهة القارئة |
+| `assigned_to`·`assigned_at`·`assigned_by` | الأخصائي المسؤول — **يجب أن يكون عضواً نشطاً في المركز نفسه** |
+| `status` | تسع حالات: `requested`·`triage`·`assigned`·`in_progress`·`on_hold`·`closed_completed`·`closed_referred`·`closed_unreachable`·`cancelled` |
+| `assessment_id` | التقييم الذي بُني عليه الطلب — يبدأ الأخصائي من تشخيص لا من صفحة بيضاء |
+| `outcome_summary_ar` | **إلزامي عند الإغلاق**؛ يُكتب في جملة التحديث نفسها التي تكتب حالة الإغلاق |
+| `closed_at`·`closed_by` | تُمحى إلى `NULL` عند إعادة الفتح، فلا تبدو الحالة مغلقة لأي استعلام |
+| `satisfaction_rating` | تقييم المشروع للخدمة بعد الإغلاق (1–5) |
+
+`cancelled` نهائية بلا إجراء بعدها.
+
+### `bds_case_notes`
+`visibility` = `internal` · `shared` — **الفارق بين مساحة عمل الأخصائي وما يصل المشروع.**
+الاستعلام الذي يقرأ نيابةً عن المشروع يضيف `visibility = 'shared'` إلى `WHERE`،
+فالصفّ الداخلي **لا يُجلب من قاعدة البيانات أصلاً**. والمشروع لا يكتب ملاحظة داخلية:
+«داخلية» تعني داخل المركز.
+
+### `bds_consultations`
+الجلسة الاستشارية. `mode` = `onsite`·`phone`·`online`، و`status` =
+`scheduled`·`completed`·`no_show`·`cancelled`.
+
+- `summary_ar` — يراه المشروع، و**إلزامي حين تُسجَّل الجلسة كمكتملة**.
+- `internal_note_ar` — انطباع الأخصائي. **نسخة المشروع لا تحوي هذا العمود إطلاقاً**؛
+  الحجب في قائمة أعمدة `SELECT` لا في العرض.
+
+الجدولة والتسجيل خطوتان منفصلتان: الأولى وعد والثانية واقعة، ودمجهما كان سيسمح بتسجيل
+جلسة لم تُعقد.
+
+### `bds_action_plans` · `bds_plan_tasks`
+`shared_at` نقطة التحوّل: قبلها الخطة مسودة داخلية للمركز، وبعدها التزام معلن.
+استعلام المشروع يشترط `shared_at IS NOT NULL`. **خطة بلا مهمة واحدة لا تُشارك.**
+
+`bds_plan_tasks.owner_side` = `organization`·`center` يحدّد **من يحقّ له تحديث حالة
+المهمة**؛ تحديث أحد الطرفين مهمة الآخر يزوّر تقدّماً لم يحدث. مهمة خطة غير مشتركة
+محجوبة عن المشروع بـ 404.
+
+### `bds_referrals`
+| العمود | ملاحظات |
+|---|---|
+| `target_type`·`target_id` | `financing_product` أو `service_offering` |
+| `target_name_ar` | يُنسخ عند الإحالة ليبقى السجلّ مقروءاً لو تغيّر اسم العرض |
+| `reason_ar` | **إلزامي** — توصية بلا تعليل لا تساعد المشروع على القرار |
+| `status` | `suggested`·`accepted`·`declined` — والقرار للمشروع |
+
+**الإحالة توصية موثّقة لا التزام:** لا تُنشئ طلباً ولا تُلزم الجهة المُحال إليها.
+ولا تُوجَّه إلا إلى عرض `published` من منشأة `verified` — نفس حدّ الرؤية العامة.
+
+### `bds_case_history`
+`from_status`·`to_status`·`actor_user_id`·`actor_side`·`note_ar`. قيد الإنشاء يحمل
+`from_status = NULL`، فسجلّ حالة مرّت بستة انتقالات يحوي سبعة قيود.
+
+---
+
+## مخطط العلاقات (المرحلة الخامسة)
+
+```
+organizations (المشروع) ──┐
+                          ├──< bds_cases >── users (الأخصائي)
+organizations (المركز) ───┘        │
+                                   ├──< bds_case_notes        (internal | shared)
+                                   ├──< bds_consultations     (summary | internal_note)
+                                   ├──< bds_action_plans ──< bds_plan_tasks
+                                   ├──< bds_referrals ──> financing_products | service_offerings
+                                   └──< bds_case_history
+
+bds_cases ──> needs_assessments        (التشخيص الذي بُني عليه الطلب)
+```

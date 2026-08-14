@@ -25,7 +25,8 @@ $organizationType = (string) ($organization['type_code'] ?? '');
 
 /** أقسام مقصورة على أنواع منشآت بعينها | Sections limited to certain org types. */
 $sectionOrgTypes = [
-    'ما نقدّمه' => ['bank', 'service_provider', 'ngo', 'bds_center'],
+    'ما نقدّمه'            => ['bank', 'service_provider', 'ngo', 'bds_center'],
+    'مركز تطوير الأعمال' => ['bds_center'],
 ];
 $sections = [
     'العمل اليومي' => [
@@ -51,7 +52,12 @@ $sections = [
         ['الخدمات غير المالية', '/app/services/browse', '🧭', 'services.offering.view', true],
         ['طلبات الخدمة', '/app/services/my-requests', '🤝', 'services.request.submit', true],
         ['تقييم الاحتياجات', '/app/assessment', '📊', 'assessment.needs.view', true],
-        ['الدعم الفني والإرشادي', '/app/bds', '🎓', 'bds.case.request', false],
+        ['مراكز تطوير الأعمال', '/app/bds/centers', '🎓', 'bds.case.request', true],
+        ['طلبات الدعم', '/app/bds/my-cases', '🗂', 'bds.case.request', true],
+    ],
+    // مساحة عمل مركز تطوير الأعمال | The BDS centre workspace
+    'مركز تطوير الأعمال' => [
+        ['حالات الدعم', '/app/bds/cases', '🧑‍🏫', 'bds.case.manage', true],
     ],
     // تظهر لمقدّمي الخدمات والمؤسسات المالية فقط، بحكم الصلاحيات
     'ما نقدّمه' => [
