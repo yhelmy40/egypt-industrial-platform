@@ -18,7 +18,32 @@
         initAutoDismiss();
         initFormGuards();
         initDependentSelects();
+        initRepeatableRows();
+        initQuantityTotals();
+        initAutoSubmit();
     });
+
+    /**
+     * قوائم تُرسل نموذجها عند التغيير | Selects that submit on change.
+     *
+     * لا يُكتب المعالج في سمة `onchange` داخل القالب: سياسة أمن المحتوى تمنع
+     * الشيفرة السطرية (`script-src 'self'` بلا `unsafe-inline`)، فالسمة تُحجب
+     * ويصبح الاختيار بلا أثر. الربط من هنا يعمل، ويبقى زر `noscript` في القالب
+     * هو المخرج لمن يعطّل جافاسكربت.
+     * The handler is not written as an inline `onchange`: the CSP forbids
+     * inline script, so the attribute would be blocked and the select would do
+     * nothing. Binding here works, and the template's noscript button remains
+     * the fallback.
+     */
+    function initAutoSubmit() {
+        document.querySelectorAll('select[data-auto-submit]').forEach(function (select) {
+            select.addEventListener('change', function () {
+                if (select.form) {
+                    select.form.submit();
+                }
+            });
+        });
+    }
 
     /** القائمة الجانبية على الشاشات الصغيرة | Mobile sidebar toggle. */
     function initSidebar() {
@@ -145,6 +170,109 @@
                     .catch(function () { /* تُترك القائمة كما هي عند فشل الطلب */ })
                     .finally(function () { target.disabled = false; });
             });
+        });
+    }
+
+    /**
+     * صفوف متكرّرة | Repeatable rows (quotation lines).
+     *
+     * تحسين تدريجي: الخادم يرسم عدداً من الصفوف الفارغة، فيبقى بناء العرض
+     * ممكناً بلا جافاسكربت؛ هذا الكود يضيف صفوفاً إضافية عند الحاجة فقط.
+     * Progressive enhancement: the server renders several blank rows so a quote
+     * can still be built without JS; this only adds more rows on demand.
+     */
+    function initRepeatableRows() {
+        document.querySelectorAll('[data-repeatable]').forEach(function (container) {
+            var addButton = container.querySelector('[data-repeat-add]');
+            var body = container.querySelector('[data-repeat-body]');
+
+            if (!addButton || !body) {
+                return;
+            }
+
+            addButton.hidden = false;
+
+            addButton.addEventListener('click', function () {
+                var rows = body.querySelectorAll('[data-repeat-row]');
+                if (!rows.length || rows.length >= 30) {
+                    return;
+                }
+
+                var clone = rows[rows.length - 1].cloneNode(true);
+                clone.querySelectorAll('input, textarea').forEach(function (field) {
+                    if (field.type !== 'hidden') {
+                        field.value = field.dataset.repeatDefault || '';
+                    }
+                    field.removeAttribute('id');
+                });
+                clone.querySelectorAll('label').forEach(function (label) {
+                    label.remove();
+                });
+
+                body.appendChild(clone);
+                recalculate(container);
+            });
+
+            body.addEventListener('click', function (event) {
+                var remove = event.target.closest('[data-repeat-remove]');
+                if (!remove) {
+                    return;
+                }
+
+                var rows = body.querySelectorAll('[data-repeat-row]');
+                if (rows.length <= 1) {
+                    return;
+                }
+
+                remove.closest('[data-repeat-row]').remove();
+                recalculate(container);
+            });
+        });
+    }
+
+    /**
+     * إجمالي تقديري | Client-side total preview.
+     *
+     * رقم إرشادي فقط؛ الخادم هو من يحسب المبلغ المُلزِم عند الحفظ.
+     * Indicative only — the server computes the binding amount on save.
+     */
+    function initQuantityTotals() {
+        document.querySelectorAll('[data-total-scope]').forEach(function (scope) {
+            scope.addEventListener('input', function () { recalculate(scope); });
+            recalculate(scope);
+        });
+    }
+
+    function recalculate(scope) {
+        var output = scope.querySelector('[data-total-output]');
+        if (!output) {
+            return;
+        }
+
+        var total = 0;
+
+        scope.querySelectorAll('[data-repeat-row]').forEach(function (row) {
+            var quantity = parseFloat(row.querySelector('[data-line-quantity]') ? row.querySelector('[data-line-quantity]').value : '0');
+            var price = parseFloat(row.querySelector('[data-line-price]') ? row.querySelector('[data-line-price]').value : '0');
+            var vat = parseFloat(row.querySelector('[data-line-vat]') ? row.querySelector('[data-line-vat]').value : '0');
+
+            if (isNaN(quantity) || isNaN(price)) {
+                return;
+            }
+
+            var line = quantity * price;
+            total += line + (isNaN(vat) ? 0 : line * vat / 100);
+        });
+
+        var delivery = scope.querySelector('[data-delivery-fee]');
+        if (delivery) {
+            var fee = parseFloat(delivery.value);
+            total += isNaN(fee) ? 0 : fee;
+        }
+
+        output.textContent = total.toLocaleString('ar-EG', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         });
     }
 })();

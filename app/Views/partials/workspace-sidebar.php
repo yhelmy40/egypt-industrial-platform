@@ -19,20 +19,20 @@ $organization = TenantContext::organization();
 $sections = [
     'العمل اليومي' => [
         ['لوحة التحكم', '/app', '▤', null, true],
-        ['الطلبات', '/app/orders', '📦', 'marketplace.order.view', false],
-        ['الاستفسارات', '/app/enquiries', '💬', 'marketplace.enquiry.view', false],
+        ['الطلبات', '/app/orders', '📦', 'marketplace.order.view', true],
+        ['الاستفسارات', '/app/enquiries', '💬', 'marketplace.enquiry.view', true],
         ['الإشعارات', '/app/notifications', '🔔', null, true],
         ['الرسائل', '/app/messages', '✉', 'messaging.conversation.view', false],
     ],
     'المنشأة' => [
         ['ملف المنشأة', '/app/organization', '🏢', 'org.profile.view', true],
         ['المستندات', '/app/organization/documents', '📄', 'org.document.view', true],
-        ['الصفحة التعريفية', '/app/page', '🌐', 'org.page.manage', false],
-        ['الفريق', '/app/team', '👥', 'org.member.view', false],
+        ['الصفحة التعريفية', '/app/page', '🌐', 'org.page.manage', true],
+        ['الفريق', '/app/team', '👥', 'org.member.view', true],
     ],
     'السوق' => [
-        ['المنتجات والخدمات', '/app/listings', '🛒', 'marketplace.listing.view', false],
-        ['عروض الأسعار', '/app/quotations', '🧾', 'marketplace.quotation.manage', false],
+        ['المنتجات والخدمات', '/app/listings', '🛒', 'marketplace.listing.view', true],
+        ['عروض الأسعار', '/app/quotations', '🧾', 'marketplace.quotation.manage', true],
     ],
     'الخدمات والدعم' => [
         ['فرص التمويل', '/app/financing', '🏦', 'finance.product.view', false],

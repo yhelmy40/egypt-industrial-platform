@@ -38,6 +38,43 @@ $router->group('', [ResolveTenant::class], static function (Router $r): void {
     $r->get('/contact', [PublicController\HomeController::class, 'contact'])->name('contact');
     $r->get('/terms', [PublicController\HomeController::class, 'terms'])->name('terms');
     $r->get('/privacy', [PublicController\HomeController::class, 'privacy'])->name('privacy');
+
+    // ─── السوق العام | Public marketplace (§4.4) ───
+    $r->get('/marketplace', [PublicController\MarketplaceController::class, 'index'])->name('marketplace');
+    $r->get('/marketplace/{slug}', [PublicController\MarketplaceController::class, 'show'])->name('marketplace.listing');
+    $r->get('/directory', [PublicController\MarketplaceController::class, 'directory'])->name('directory');
+
+    // ─── الصفحة التعريفية للمنشأة | SME storefront (§4.3) ───
+    $r->get('/business/{slug}', [PublicController\MarketplaceController::class, 'businessPage'])->name('business.show');
+
+    // ─── السلة | Cart ───
+    $r->get('/cart', [PublicController\CartController::class, 'show'])->name('cart');
+    $r->post('/cart/add', [PublicController\CartController::class, 'add']);
+    $r->post('/cart/update', [PublicController\CartController::class, 'update']);
+    $r->post('/cart/remove', [PublicController\CartController::class, 'remove']);
+
+    // ─── إتمام الشراء | Checkout ───
+    $r->get('/checkout', [PublicController\CartController::class, 'checkoutForm'])->name('checkout');
+    $r->get('/checkout/confirmation', [PublicController\CartController::class, 'confirmation']);
+
+    // ─── تتبّع الطلبات وعروض الأسعار | Tracking (guest-accessible via token) ───
+    $r->get('/orders/track/{token}', [PublicController\CustomerController::class, 'trackOrder'])->name('orders.track');
+    $r->get('/orders/mine', [PublicController\CustomerController::class, 'myOrders'])->name('orders.mine');
+    $r->get('/quotations/track/{token}', [PublicController\CustomerController::class, 'trackQuotation'])->name('quotations.track');
+
+    // ─── قبول دعوة الانضمام | Accept a team invitation ───
+    $r->get('/invitations/accept', [Sme\TeamController::class, 'acceptInvitation'])->name('invitations.accept');
+});
+
+// إجراءات عامة تغيّر الحالة — محدودة المعدّل لمنع الإساءة (§9)
+// Public state-changing actions, rate-limited against abuse.
+$router->group('', [ResolveTenant::class, EnforceRateLimit::class], static function (Router $r): void {
+    $r->post('/checkout', [PublicController\CartController::class, 'placeOrder']);
+    $r->post('/enquiry', [PublicController\CustomerController::class, 'submitEnquiry'])->name('enquiry.submit');
+    $r->post('/quotations/request', [PublicController\CustomerController::class, 'requestQuotation'])->name('quotations.request');
+    $r->post('/quotations/track/{token}/respond', [PublicController\CustomerController::class, 'respondToQuotation']);
+    $r->post('/orders/track/{token}/dispute', [PublicController\CustomerController::class, 'disputeOrder']);
+    $r->post('/orders/track/{token}/review', [PublicController\CustomerController::class, 'submitReview']);
 });
 
 // ═══════════════════ المصادقة | Authentication ═══════════════════
@@ -112,6 +149,80 @@ $router->group(
         $r->post('/organization/documents/{id:\d+}/delete', [Sme\DocumentController::class, 'delete'])
             ->permission('org.document.upload');
 
+        // ─── الصفحة التعريفية | Public page editor (§4.3) ───
+        $r->get('/page', [Sme\PageController::class, 'edit'])
+            ->permission('org.page.manage')->name('page.edit');
+        $r->post('/page/settings', [Sme\PageController::class, 'saveSettings'])
+            ->permission('org.page.manage');
+        $r->post('/page/sections', [Sme\PageController::class, 'saveSections'])
+            ->permission('org.page.manage');
+        $r->post('/page/media', [Sme\PageController::class, 'uploadMedia'])
+            ->permission('org.page.manage');
+        $r->post('/page/media/{id:\d+}/delete', [Sme\PageController::class, 'deleteMedia'])
+            ->permission('org.page.manage');
+        $r->post('/page/publish', [Sme\PageController::class, 'publish'])
+            ->permission('org.page.publish');
+        $r->post('/page/unpublish', [Sme\PageController::class, 'unpublish'])
+            ->permission('org.page.publish');
+
+        // ─── المنتجات والخدمات | Listings (§4.4) ───
+        $r->get('/listings', [Sme\ListingController::class, 'index'])
+            ->permission('marketplace.listing.view')->name('listings');
+        $r->get('/listings/new', [Sme\ListingController::class, 'create'])
+            ->permission('marketplace.listing.create');
+        $r->post('/listings', [Sme\ListingController::class, 'store'])
+            ->permission('marketplace.listing.create');
+        $r->get('/listings/{id:\d+}', [Sme\ListingController::class, 'edit'])
+            ->permission('marketplace.listing.view');
+        $r->post('/listings/{id:\d+}', [Sme\ListingController::class, 'update'])
+            ->permission('marketplace.listing.update');
+        $r->post('/listings/{id:\d+}/submit', [Sme\ListingController::class, 'submit'])
+            ->permission('marketplace.listing.publish');
+        $r->post('/listings/{id:\d+}/archive', [Sme\ListingController::class, 'archive'])
+            ->permission('marketplace.listing.update');
+        $r->post('/listings/{id:\d+}/delete', [Sme\ListingController::class, 'destroy'])
+            ->permission('marketplace.listing.delete');
+        $r->post('/listings/{id:\d+}/images', [Sme\ListingController::class, 'uploadImage'])
+            ->permission('marketplace.listing.update');
+        $r->post('/listings/{id:\d+}/images/{imageId:\d+}/delete', [Sme\ListingController::class, 'deleteImage'])
+            ->permission('marketplace.listing.update');
+
+        // ─── الطلبات | Orders ───
+        $r->get('/orders', [Sme\SalesController::class, 'orders'])
+            ->permission('marketplace.order.view')->name('orders');
+        $r->get('/orders/{id:\d+}', [Sme\SalesController::class, 'showOrder'])
+            ->permission('marketplace.order.view');
+        $r->post('/orders/{id:\d+}/status', [Sme\SalesController::class, 'updateOrderStatus'])
+            ->permission('marketplace.order.update_status');
+
+        // ─── الاستفسارات | Enquiries ───
+        $r->get('/enquiries', [Sme\SalesController::class, 'enquiries'])
+            ->permission('marketplace.enquiry.view')->name('enquiries');
+        $r->get('/enquiries/{id:\d+}', [Sme\SalesController::class, 'showEnquiry'])
+            ->permission('marketplace.enquiry.view');
+        $r->post('/enquiries/{id:\d+}/reply', [Sme\SalesController::class, 'replyToEnquiry'])
+            ->permission('marketplace.enquiry.respond');
+
+        // ─── عروض الأسعار | Quotations ───
+        $r->get('/quotations', [Sme\SalesController::class, 'quotations'])
+            ->permission('marketplace.quotation.manage')->name('quotations');
+        $r->get('/quotations/{id:\d+}', [Sme\SalesController::class, 'showQuotation'])
+            ->permission('marketplace.quotation.manage');
+        $r->post('/quotations/{id:\d+}/quote', [Sme\SalesController::class, 'submitQuote'])
+            ->permission('marketplace.quotation.manage');
+
+        // ─── فريق المنشأة | Team (§3.4) ───
+        $r->get('/team', [Sme\TeamController::class, 'index'])
+            ->permission('org.member.view')->name('team');
+        $r->post('/team/invite', [Sme\TeamController::class, 'invite'])
+            ->permission('org.member.manage');
+        $r->post('/team/invitations/{id:\d+}/revoke', [Sme\TeamController::class, 'revokeInvitation'])
+            ->permission('org.member.manage');
+        $r->post('/team/members/{id:\d+}/permissions', [Sme\TeamController::class, 'updatePermissions'])
+            ->permission('org.member.manage');
+        $r->post('/team/members/{id:\d+}/remove', [Sme\TeamController::class, 'removeMember'])
+            ->permission('org.member.manage');
+
         // ─── الإشعارات | Notifications ───
         $r->get('/notifications', [Sme\NotificationController::class, 'index'])
             ->name('notifications');
@@ -149,6 +260,16 @@ $router->group(
             ->permission('org.account.verify');
         $r->post('/verifications/{id:\d+}/documents/{documentId:\d+}', [Admin\VerificationController::class, 'reviewDocument'])
             ->permission('org.account.verify');
+
+        // ─── مراجعة الإعلانات والشكاوى | Listing moderation and complaints ───
+        $r->get('/moderation', [Admin\ModerationController::class, 'index'])
+            ->permission('marketplace.listing.moderate')->name('admin.moderation');
+        $r->get('/moderation/{id:\d+}', [Admin\ModerationController::class, 'show'])
+            ->permission('marketplace.listing.moderate');
+        $r->post('/moderation/{id:\d+}/decide', [Admin\ModerationController::class, 'decide'])
+            ->permission('marketplace.listing.moderate');
+        $r->get('/complaints', [Admin\ModerationController::class, 'complaints'])
+            ->permission('marketplace.complaint.view')->name('admin.complaints');
     },
 );
 

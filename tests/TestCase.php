@@ -132,6 +132,43 @@ abstract class TestCase extends BaseTestCase
         );
     }
 
+    /**
+     * إنشاء صنف في السوق | Create a marketplace listing.
+     *
+     * @param array<string,mixed> $attributes
+     */
+    protected function createListing(int $organizationId, array $attributes = []): int
+    {
+        static $counter = 0;
+        $counter++;
+
+        $data = array_merge([
+            'organization_id'    => $organizationId,
+            'listing_type'       => 'product',
+            'name_ar'            => 'صنف اختبار ' . $counter,
+            'slug'               => 'test-listing-' . $counter . '-' . bin2hex(random_bytes(4)),
+            'short_description'  => 'وصف مختصر لصنف الاختبار.',
+            'pricing_mode'       => 'fixed',
+            'price'              => 100.00,
+            'currency_code'      => 'EGP',
+            'vat_rate'           => 14.00,
+            'unit_of_measure'    => 'قطعة',
+            'available_quantity' => 50,
+            'track_inventory'    => 1,
+            'min_order_quantity' => 1,
+            'status'             => 'published',
+            'published_at'       => date('Y-m-d H:i:s'),
+        ], $attributes);
+
+        $columns = array_keys($data);
+
+        return Database::insert(
+            'INSERT INTO listings (`' . implode('`, `', $columns) . '`) VALUES ('
+            . implode(', ', array_fill(0, count($columns), '?')) . ')',
+            array_values($data),
+        );
+    }
+
     /** ربط مستخدم بمنشأة بدور | Attach a user to an organization with a role. */
     protected function addMember(
         int $organizationId,

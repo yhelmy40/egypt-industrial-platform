@@ -25,7 +25,7 @@ $organizations = $organizations ?? [];
             <?= csrf_field() ?>
             <label class="visually-hidden" for="orgSwitcher"><?= __e('common.switch_organization') ?></label>
             <select class="form-select form-select-sm" id="orgSwitcher" name="organization_id"
-                    onchange="this.form.submit()" style="min-width:14rem">
+                    data-auto-submit style="min-width:14rem">
                 <?php foreach ($organizations as $org): ?>
                     <option value="<?= e((string) $org['id']) ?>"
                         <?= (int) $org['id'] === TenantContext::organizationId() ? ' selected' : '' ?>>

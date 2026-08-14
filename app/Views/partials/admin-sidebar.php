@@ -16,8 +16,8 @@ $sections = [
     'المراجعة والاعتماد' => [
         ['طلبات التوثيق', '/admin/verifications', '✅', 'org.account.view_any', true],
         ['المنشآت', '/admin/verifications?status=', '🏢', 'org.account.view_any', true],
-        ['مراجعة الإعلانات', '/admin/moderation', '🛒', 'marketplace.listing.moderate', false],
-        ['الشكاوى والنزاعات', '/admin/complaints', '⚠', 'marketplace.complaint.manage', false],
+        ['مراجعة الإعلانات', '/admin/moderation', '🛒', 'marketplace.listing.moderate', true],
+        ['الشكاوى والنزاعات', '/admin/complaints', '⚠', 'marketplace.complaint.manage', true],
     ],
     'المحتوى' => [
         ['مركز المعرفة', '/admin/articles', '📚', 'content.article.manage', false],

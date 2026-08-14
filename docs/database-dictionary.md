@@ -1,12 +1,13 @@
 # قاموس البيانات | Database Dictionary
 
-نطاق هذا المستند: الجداول المُنفَّذة في **المرحلة الأولى** (16 جدولاً).
+نطاق هذا المستند: الجداول المُنفَّذة حتى **المرحلة الثالثة** (48 جدولاً).
 تُضاف بقية المجموعات مع مراحلها.
 
 **اتفاقيات عامة:** InnoDB · `utf8mb4_unicode_ci` · `created_at`/`updated_at` على كل
 جدول أعمال · `deleted_at` للحذف الناعم حيث يجب الاحتفاظ بالسجل · المبالغ
 `DECIMAL(14,2)` (لا `FLOAT` أبداً) · عناوين IP في `VARBINARY(16)` عبر `inet_pton`
-· الرموز السرّية تُخزَّن مجزّأة `CHAR(64)` (SHA-256).
+· الرموز السرّية تُخزَّن مجزّأة `CHAR(64)` (SHA-256)، وأعمدة الأسرار كلها
+بترتيب `ascii_bin` لتكون المقارنة بايتاً ببايت (ترحيل `0015`).
 
 ---
 
@@ -136,4 +137,159 @@ users ──< organization_members >── organizations
 organizations ──< organization_invitations
 users ──< login_attempts · password_resets · verification_tokens · user_consents
 users · organizations ──< audit_logs
+```
+
+---
+
+## المجموعة 5: الملفات والمستندات والتوثيق (المرحلة الثانية)
+
+### `media` — سجل الوسائط
+| العمود | ملاحظات |
+|---|---|
+| `disk_path` | مسار **خارج جذر الويب**؛ لا يُقدَّم ملف إلا عبر `FileController` |
+| `stored_name` | 32 حرفاً عشوائياً — لا صلة له بالاسم الأصلي |
+| `mime_type` | من `finfo` لا من المتصفح |
+| `visibility` | `public`·`private` — الخاص يستوجب تفويضاً وتُسجَّل قراءته |
+| `checksum` | SHA-256 لكشف التكرار والتلف |
+
+### `document_types` · `organization_documents`
+أنواع المستندات **بيانات** لا كود: الإدارة تعدّل المطلوب دون نشر إصدار.
+كل مستند يحمل حالة مراجعة مستقلة عن حالة المنشأة، وسبب الرفض إلزامي.
+
+### `sme_profiles` · `provider_profiles` · `bds_centers`
+ملف تفصيلي لكل نوع منشأة، مفتاحه `organization_id` لا `id`.
+`formalization_status` يقبل NULL بمعنى «لم يُحدَّد بعد» (ترحيل `0010`).
+
+### `organization_verifications` — سجل قرارات التوثيق
+إلحاقي: كل إجراء (`submit`·`start_review`·`request_info`·`approve`·`reject`·
+`suspend`·`reinstate`) صفٌّ جديد بفاعله وسببه. `internal_note` **لا يُعرض للمنشأة**.
+
+### `notifications`
+إشعار داخل المنصة لكل مستخدم، مع `entity_type`/`entity_id` وربط اختياري بالمنشأة.
+
+---
+
+## المجموعة 6: الصفحة التعريفية والكتالوج (المرحلة الثالثة)
+
+### `public_pages` — الصفحة العامة للمنشأة
+| العمود | ملاحظات |
+|---|---|
+| `status` | `draft`·`published`·`unpublished` — النشر ممنوع قبل توثيق المنشأة |
+| `theme` · `primary_color` | من قائمة مغلقة · `#RRGGBB` مُتحقَّق منه قبل الطباعة في `style` |
+| `show_phone`·`show_email`·`show_address`·`show_whatsapp` | **افتراضها 0**: الأقل كشفاً |
+| `enable_enquiry_form`·`enable_quote_request` | تحكّم صاحب المنشأة في قنوات الوصول |
+| `meta_title`·`meta_description` | ظهور عربي في محركات البحث |
+| `view_count` | عدّاد زيارات بسيط |
+
+### `page_sections` — أقسام الصفحة
+`UNIQUE(public_page_id, section_type)` و`section_type` من مجموعة مغلقة من تسعة أنواع.
+لا يمكن استحداث قسم خارجها؛ `sort_order` يُقصَر على 0–999.
+
+### `page_media` — المعرض والشهادات
+`collection` = `gallery`·`certificate`. عرض شهادة هنا **ليس** تصديقاً من المنصة.
+
+### `categories` — تصنيفات السوق
+شجرة من مستويين، `UNIQUE(type, code)`، 41 تصنيفاً مبذوراً كبيانات مرجعية.
+
+### `listings` — المنتجات والخدمات
+| العمود | ملاحظات |
+|---|---|
+| `listing_type` | `product`·`service` |
+| `pricing_mode` | `fixed` (سعر معروض) · `quote` (اطلب عرض سعر) |
+| `price`·`vat_rate`·`vat_included` | `DECIMAL(14,2)` — لا `FLOAT` |
+| `track_inventory`·`available_quantity` | الخصم مشروط بـ `available_quantity >= ?` |
+| `status` | `draft`·`pending_review`·`published`·`rejected`·`archived` |
+| `moderation_note`·`moderated_by`·`moderated_at` | الرفض يستوجب سبباً يصل للمنشأة |
+| `rating_average`·`rating_count`·`order_count` | عدّادات مشتقّة تُحدَّث من المصدر |
+
+فهرس `FULLTEXT` على `name_ar`/`short_description`/`description`، وفهرس تصفّح مركّب
+`(status, listing_type, category_id, deleted_at)`.
+
+### `listing_images`
+`alt_text` متطلّب إمكانية وصول؛ الصور نفسها في `media`.
+
+---
+
+## المجموعة 7: التجارة (المرحلة الثالثة)
+
+### `payment_methods`
+أربع وسائل، كلها `driver = 'offline'`: المنصة **لا تنفّذ تحصيلاً إلكترونياً** ولا
+تحتفظ ببيانات بطاقات. `requires_proof` يحدّد ما يستوجب إيصالاً.
+
+### `carts` · `cart_items`
+سلة الزائر مفتاحها `guest_token` عشوائي (`ascii_bin`)؛ سلة المستخدم مفتاحها
+`user_id`. الدمج يتم عند تسجيل الدخول. `UNIQUE(cart_id, listing_id)` يمنع التكرار.
+`cart_items.seller_organization_id` مكرَّر عمداً لتسهيل التجميع حسب البائع.
+
+### `orders` — الطلب
+| العمود | ملاحظات |
+|---|---|
+| `order_number` | رقم معروض للعميل، فريد |
+| `organization_id` | **المنشأة البائعة** — كل طلب لبائع واحد |
+| `tracking_token` | 48 حرفاً عشوائياً، `ascii_bin` — مفتاح الزائر الوحيد |
+| `status` | عشر حالات محكومة بآلة حالة في `OrderService` |
+| `subtotal`·`vat_amount`·`delivery_fee`·`discount_amount`·`total` | كلها `DECIMAL(14,2)` |
+| `payment_status` | `unpaid`·`proof_submitted`·`paid`·`refunded` — يسجّلها البائع |
+| `source` | `marketplace`·`storefront`·`quotation` |
+| `confirmed_at`·`delivered_at`·`completed_at` | أختام زمنية للحالات المفصلية |
+
+### `order_items`
+نسخة **مجمَّدة** من بيانات الصنف وقت الشراء (`name_ar`·`sku`·`unit_price`·`vat_rate`)،
+فحذف الإعلان لاحقاً لا يفسد الطلب. `listing_id` يقبل NULL لهذا السبب.
+
+### `order_status_history`
+إلحاقي: كل انتقال صفٌّ بفاعله (`seller`·`customer`·`platform`·`system`) وسببه.
+
+### `order_payments`
+تسجيل ما دُفع خارج المنصة: مبلغ ومرجع وإثبات اختياري وحالة تحقّق.
+
+---
+
+## المجموعة 8: الاستفسارات والتقييمات والشكاوى (المرحلة الثالثة)
+
+### `customer_enquiries`
+استفسار عن صنف بعينه أو عن المنشأة. `source_ip` لكشف الإساءة فقط.
+الرد يسجَّل مع فاعله وتاريخه، والحالة تنتقل `new`→`read`→`replied`.
+
+### `quotations` · `quotation_items`
+| العمود | ملاحظات |
+|---|---|
+| `status` | `requested`·`quoted`·`accepted`·`rejected`·`expired`·`withdrawn` |
+| `valid_until` | العرض المنقضي يُوسم `expired` ويُرفض قبوله |
+| `converted_order_id` | القبول ينشئ طلباً بحالة `confirmed` مباشرة |
+| `tracking_token` | 48 حرفاً — متابعة دون حساب |
+
+### `reviews`
+`UNIQUE(order_id)` — **تقييم واحد لكل طلب**، ولا تقييم إلا بعد طلب `completed`.
+`status` يسمح بالحجب الإداري، والمحجوب لا يدخل في المتوسط.
+`seller_reply` يتيح للمنشأة الرد علناً.
+
+### `complaints`
+شكوى مرتبطة اختيارياً بمنشأة أو طلب أو إعلان. في هذه المرحلة **شاشة اطّلاع وإحالة**:
+لا تُعرض شكوى كـ«محلولة» ما لم يسجّل ذلك مسؤول مختصّ.
+
+---
+
+## مخطط العلاقات (المرحلتان الثانية والثالثة)
+
+```
+organizations ──< organization_documents >── document_types
+organizations ──1 sme_profiles | provider_profiles | bds_centers
+organizations ──< organization_verifications
+organizations ──1 public_pages ──< page_sections
+                                └──< page_media >── media
+
+categories ──< listings ──< listing_images >── media
+organizations ──< listings
+
+carts ──< cart_items >── listings
+organizations ──< orders ──< order_items >── listings
+                    ├──< order_status_history
+                    └──< order_payments >── payment_methods
+
+organizations ──< customer_enquiries >── listings
+organizations ──< quotations ──< quotation_items
+                      └──1 orders (converted_order_id)
+orders ──1 reviews ──> organizations · listings
+organizations · orders · listings ──< complaints
 ```

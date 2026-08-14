@@ -219,6 +219,34 @@ final class MembershipRepository extends BaseRepository
         });
     }
 
+    /**
+     * تجاوزات صلاحيات كل أعضاء المنشأة | Permission overrides for every member.
+     *
+     * تُقرأ دفعةً واحدة لتغذية شاشة الفريق دون استعلام لكل عضو.
+     *
+     * @return array<int,array{grant:array<int,string>,deny:array<int,string>}>
+     */
+    public function permissionOverridesForOrganization(int $organizationId): array
+    {
+        $rows = Database::select(
+            'SELECT mp.member_id, mp.effect, p.code
+               FROM organization_member_permissions mp
+               JOIN organization_members m ON m.id = mp.member_id
+               JOIN permissions p ON p.id = mp.permission_id
+              WHERE m.organization_id = ?',
+            [$organizationId],
+        );
+
+        $overrides = [];
+        foreach ($rows as $row) {
+            $memberId = (int) $row['member_id'];
+            $overrides[$memberId] ??= ['grant' => [], 'deny' => []];
+            $overrides[$memberId][(string) $row['effect']][] = (string) $row['code'];
+        }
+
+        return $overrides;
+    }
+
     public function countActiveMembers(int $organizationId): int
     {
         return (int) Database::scalar(

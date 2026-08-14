@@ -73,6 +73,8 @@ $runner->run('GovernoratesSeeder');
 $runner->run('SectorsSeeder');
 $runner->run('OrganizationTypesSeeder');
 $runner->run('DocumentTypesSeeder');
+$runner->run('CategoriesSeeder');
+$runner->run('PaymentMethodsSeeder');
 $runner->run('RolesAndPermissionsSeeder');
 $runner->run('SystemSettingsSeeder');
 
