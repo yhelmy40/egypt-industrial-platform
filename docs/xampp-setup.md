@@ -69,10 +69,23 @@ LoadModule rewrite_module modules/mod_rewrite.so
 
 ```bat
 cd C:\xampp\htdocs
-git clone <repo-url> rowad
+git clone -b claude/sme-marketplace-mvp-design-9ymw57 ^
+  https://github.com/yhelmy40/egypt-industrial-platform.git rowad
 cd rowad
 composer install
 ```
+
+> ⚠ **حدِّد الفرع.** الفرع الافتراضي `main` يحمل النموذج الأوّلي القديم
+> (وهو نفسه محفوظ داخل `legacy/`)، لا المنصّة. الاستنساخ بلا `-b` يعطيك
+> الشيفرة القديمة فتبدو المنصّة كأنها لا تعمل.
+
+إن كان مجلد `rowad` موجوداً مسبقاً فلا مشكلة ما دام **فارغاً**؛ وإن كان
+يحوي ملفات فاستنسخ باسم آخر ثم انقل المحتويات.
+
+`composer install` لا يُنزّل شيئاً من الإنترنت — المشروع بلا اعتماديات
+تشغيل خارجية، والأمر يولّد محمّل الأصناف (autoloader) فقط. لكنه **إلزامي**:
+`public/index.php` يبدأ بـ `require vendor/autoload.php`، ومن دونه تحصل على
+صفحة بيضاء. كومبوزر غير مرفق مع XAMPP، فنزّله من getcomposer.org.
 
 يجب أن يكون المسار النهائي `C:\xampp\htdocs\rowad\public\index.php`.
 
@@ -80,7 +93,7 @@ composer install
 
 ```bat
 copy .env.example .env
-C:\xampp\php\php.exe bin\console.php key:generate
+C:\xampp\php\php.exe bin\console key:generate
 ```
 
 ثم افتح `.env` واضبط:
@@ -108,10 +121,10 @@ DB_PASSWORD=
 شغّل Apache و MySQL من لوحة تحكّم XAMPP، ثم:
 
 ```bat
-C:\xampp\php\php.exe bin\console.php db:create
-C:\xampp\php\php.exe bin\console.php migrate
-C:\xampp\php\php.exe bin\console.php seed
-C:\xampp\php\php.exe bin\console.php health
+C:\xampp\php\php.exe bin\console db:create
+C:\xampp\php\php.exe bin\console migrate
+C:\xampp\php\php.exe bin\console seed
+C:\xampp\php\php.exe bin\console health
 ```
 
 الأمر `health` بوّابة نشر: يخرج برمز 1 عند فشل أي فحص.
