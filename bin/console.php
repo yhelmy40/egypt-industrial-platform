@@ -230,7 +230,7 @@ final class Console
         $ok = true;
 
         $checks = [
-            'PHP >= 8.3'        => version_compare(PHP_VERSION, '8.3.0', '>='),
+            'PHP >= 8.2'        => version_compare(PHP_VERSION, '8.2.0', '>='),
             'ext-pdo_mysql'     => extension_loaded('pdo_mysql'),
             'ext-mbstring'      => extension_loaded('mbstring'),
             'ext-fileinfo'      => extension_loaded('fileinfo'),
@@ -311,6 +311,21 @@ final class Console
         foreach ($checks as $label => $passed) {
             $this->line(($passed ? "  \033[32m✓\033[0m " : "  \033[31m✗\033[0m ") . $label);
             $ok = $ok && $passed;
+        }
+
+        // ═══ تنبيهات لا تُسقِط البوّابة | Warnings that do not fail the gate ═══
+        // امتدادات اختيارية يعمل النظام بدونها لكن بقدرة أقل. لا تُخلط مع
+        // الفحوص أعلاه: إسقاط النشر بسببها مبالغة، وإخفاؤها خطر — فبعضها
+        // يعطّل ضابط أمان صامتاً بينما يقول التقرير «النظام جاهز».
+        $warnings = [];
+
+        if (!extension_loaded('gd')) {
+            $warnings[] = 'ext-gd غير محمَّل: الصور المرفوعة تُخزَّن بلا إعادة ترميز، '
+                . 'فلا تُسقَط الحمولات المدسوسة في البيانات الوصفية. فعّله في php.ini.';
+        }
+
+        foreach ($warnings as $warning) {
+            $this->line("  \033[33m!\033[0m " . $warning);
         }
 
         $this->line('');
