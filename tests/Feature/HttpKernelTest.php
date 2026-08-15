@@ -66,7 +66,7 @@ final class HttpKernelTest extends TestCase
             'password' => 'whatever',
         ]));
 
-        $this->assertSame(419, $response->status());
+        $this->assertSame(403, $response->status());
     }
 
     public function test_post_with_an_invalid_csrf_token_is_rejected(): void
@@ -79,7 +79,7 @@ final class HttpKernelTest extends TestCase
             'password' => 'whatever',
         ]));
 
-        $this->assertSame(419, $response->status());
+        $this->assertSame(403, $response->status());
     }
 
     public function test_post_with_a_valid_csrf_token_passes_the_middleware(): void
@@ -93,8 +93,43 @@ final class HttpKernelTest extends TestCase
         ]));
 
         // بيانات الدخول خاطئة ⇒ إعادة توجيه، لا رفض بسبب CSRF
-        $this->assertNotSame(419, $response->status());
+        $this->assertNotSame(403, $response->status());
         $this->assertTrue($response->isRedirect());
+    }
+
+    /**
+     * أباتشي يستبدل أي رمز حالة غير مسجَّل لدى IANA بـ 500 عند الإرسال،
+     * فيتحوّل خطأ عميل عادي إلى عُطل خادم في السجلّات والمراقبة. خادم PHP
+     * المدمج يمرّر الرموز كما هي، فلا يكشف هذا إطلاقاً — ولهذا الاختبار.
+     *
+     * كان رمز رفض CSRF هو 419 (اصطلاح Laravel، غير مسجَّل) فكان كل طلب
+     * منتهي الصلاحية يُرى 500 على XAMPP.
+     */
+    public function test_rejection_statuses_are_iana_registered(): void
+    {
+        // مجموعة رموز الاستجابة المسجَّلة التي يعرفها أباتشي.
+        $registered = [
+            200, 201, 202, 204, 206, 301, 302, 303, 304, 307, 308,
+            400, 401, 402, 403, 404, 405, 406, 408, 409, 410, 411, 412,
+            413, 414, 415, 416, 417, 421, 422, 423, 424, 426, 428, 429,
+            431, 451, 500, 501, 502, 503, 504, 505, 507, 508, 510, 511,
+        ];
+
+        $cases = [
+            'بلا رمز'  => ['email' => 'a@test.local'],
+            'رمز خاطئ' => ['_token' => str_repeat('a', 64), 'email' => 'a@test.local'],
+            'رمز فارغ' => ['_token' => '', 'email' => 'a@test.local'],
+        ];
+
+        foreach ($cases as $label => $payload) {
+            $status = $this->handle(Request::create('POST', '/auth/login', $payload))->status();
+
+            $this->assertContains(
+                $status,
+                $registered,
+                "رمز الحالة {$status} ({$label}) غير مسجَّل — سيحوّله أباتشي إلى 500.",
+            );
+        }
     }
 
     public function test_get_requests_do_not_require_a_csrf_token(): void
