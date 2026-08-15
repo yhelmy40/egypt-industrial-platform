@@ -1,0 +1,20 @@
+# ============================================================
+#  مجلد الأصول العامة | Public assets directory
+#  لا يُنفَّذ فيه PHP إطلاقاً: أي ملف .php يصل هنا إمّا رفع خاطئ
+#  أو محاولة استغلال، وفي الحالتين تنفيذه خطر لا فائدة منه.
+# ============================================================
+
+<FilesMatch "\.(php|phtml|phar|phps|php[0-9]?)$">
+    Require all denied
+</FilesMatch>
+
+# طبقة ثانية: إيقاف المعالج نفسه لمن يشغّل PHP كوحدة أباتشي
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+Options -Indexes -ExecCGI
+RemoveHandler .php .phtml .phar

@@ -67,6 +67,14 @@ php -S 127.0.0.1:8000 -t public
 > جذر الويب هو مجلد `public/` فقط. أي إعداد يجعل جذر الموقع هو مجلد المشروع
 > يكشف الكود والإعدادات والملفات المرفوعة — راجع `docs/deployment.md`.
 
+> ⚠ **الخادم المدمج في PHP للتطوير فقط.** الأمر `php -S` يتجاهل ملفات
+> `.htaccess` تماماً، فلا يُفعِّل أياً من ضوابط الحماية ولا إعادة الكتابة.
+> اختبر على أباتشي قبل الاعتماد على أي إعداد.
+
+**على ويندوز / XAMPP** — بما في ذلك التثبيت داخل مجلد فرعي مثل
+`htdocs/rowad` عبر `APP_BASE_PATH` — اتبع
+[`docs/xampp-setup.md`](docs/xampp-setup.md).
+
 ---
 
 ## 3. أوامر سطر الأوامر | CLI commands
@@ -159,6 +167,7 @@ docs/            التثبيت · النشر · الأدوار · الأمان 
 | [`docs/security.md`](docs/security.md) | نموذج الأمان وقائمة المراجعة |
 | [`docs/roles-and-permissions.md`](docs/roles-and-permissions.md) | الأدوار ومصفوفة الصلاحيات |
 | [`docs/deployment.md`](docs/deployment.md) | النشر على Ubuntu 24.04 والنسخ الاحتياطي والاسترجاع |
+| [`docs/xampp-setup.md`](docs/xampp-setup.md) | التشغيل المحلي على XAMPP (ويندوز) والتثبيت في مجلد فرعي |
 | [`docs/phase-1-report.md`](docs/phase-1-report.md) | تقرير تسليم المرحلة الأولى |
 | [`docs/phase-2-report.md`](docs/phase-2-report.md) | تقرير تسليم المرحلة الثانية |
 | [`docs/phase-3-report.md`](docs/phase-3-report.md) | تقرير تسليم المرحلة الثالثة |

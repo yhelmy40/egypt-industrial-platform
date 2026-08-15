@@ -43,14 +43,13 @@ Options -Indexes
     ExpiresByType image/webp "access plus 1 month"
 </IfModule>
 
-# منع تنفيذ أي ملف PHP خارج المتحكّم الأمامي داخل مجلد الأصول
-<Directory "assets">
-    <FilesMatch "\.(php|phtml|phar)$">
-        Require all denied
-    </FilesMatch>
-</Directory>
+# ملاحظة: منع تنفيذ PHP داخل مجلد الأصول مكتوب في `assets/.htaccess`.
+# لا يجوز استعمال <Directory> في ملف .htaccess — أباتشي يرفض التحميل كلّه
+# بخطأ 500 «Directory not allowed here»، فتسقط المنصة بأكملها.
 
 # حظر الملفات الحسّاسة إن وُجدت بالخطأ
-<FilesMatch "^(\.env|\.env\..*|composer\.(json|lock)|phpunit\.xml.*)$">
+# `(?i)` لأن ويندوز لا يفرّق بين حالة الأحرف بينما أباتشي يفرّق،
+# فـ `.ENV` سيصل إلى الملف نفسه ويتجاوز حظراً حسّاساً للحالة.
+<FilesMatch "(?i)^(\.env|\.env\..*|composer\.(json|lock)|phpunit\.xml.*)$">
     Require all denied
 </FilesMatch>
