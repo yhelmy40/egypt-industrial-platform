@@ -72,7 +72,7 @@ cd C:\xampp\htdocs
 git clone -b claude/sme-marketplace-mvp-design-9ymw57 ^
   https://github.com/yhelmy40/egypt-industrial-platform.git rowad
 cd rowad
-composer install
+composer install --no-dev
 ```
 
 > ⚠ **حدِّد الفرع.** الفرع الافتراضي `main` يحمل النموذج الأوّلي القديم
@@ -82,10 +82,15 @@ composer install
 إن كان مجلد `rowad` موجوداً مسبقاً فلا مشكلة ما دام **فارغاً**؛ وإن كان
 يحوي ملفات فاستنسخ باسم آخر ثم انقل المحتويات.
 
-`composer install` لا يُنزّل شيئاً من الإنترنت — المشروع بلا اعتماديات
-تشغيل خارجية، والأمر يولّد محمّل الأصناف (autoloader) فقط. لكنه **إلزامي**:
-`public/index.php` يبدأ بـ `require vendor/autoload.php`، ومن دونه تحصل على
-صفحة بيضاء. كومبوزر غير مرفق مع XAMPP، فنزّله من getcomposer.org.
+**لماذا `--no-dev`؟** المشروع بلا اعتماديات تشغيل خارجية، فهذا الأمر لا
+يُنزّل شيئاً من الإنترنت ويكتفي بتوليد محمّل الأصناف (autoloader) في ثوانٍ.
+أما `composer install` بلا `--no-dev` فيجلب PHPUnit وعشرات حِزمه من
+الإنترنت، وقد يتوقّف طويلاً أو يفشل خلف جدار حماية. لا تحتاجه إلا إذا أردت
+تشغيل الاختبارات (`vendor\bin\phpunit`).
+
+توليد المحمّل **إلزامي** في الحالتين: `public/index.php` يبدأ بـ
+`require vendor/autoload.php`، ومن دونه تحصل على صفحة بيضاء. وكومبوزر غير
+مرفق مع XAMPP، فنزّله من getcomposer.org.
 
 يجب أن يكون المسار النهائي `C:\xampp\htdocs\rowad\public\index.php`.
 
